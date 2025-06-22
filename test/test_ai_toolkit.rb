@@ -4,20 +4,26 @@ require "test_helper"
 
 class TestAiToolkit < Minitest::Test
   class EchoTool
+    # @return [String]
     def name
       "echo"
     end
 
+    # @param input [String]
+    # @return [String]
     def call(input)
       "echo: #{input}"
     end
 
+    # @return [Hash]
     def tool_spec
       { name: name, input_schema: {} }
     end
   end
 
   # rubocop:disable Metrics/MethodLength
+  # Test simple request
+  # @return [void]
   def test_request_returns_response
     provider = AiToolkit::Providers::Fake.new([
                                                 { stop_reason: "end_turn",
@@ -37,6 +43,8 @@ class TestAiToolkit < Minitest::Test
   # rubocop:enable Metrics/MethodLength
 
   # rubocop:disable Metrics/MethodLength
+  # Test auto tool loop
+  # @return [void]
   def test_auto_tool_loop
     provider = AiToolkit::Providers::Fake.new([
                                                 { stop_reason: "tool_use",

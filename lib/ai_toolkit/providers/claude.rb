@@ -9,12 +9,19 @@ module AiToolkit
     class Claude
       API_URL = "https://api.anthropic.com/v1/messages"
 
+      # @param api_key [String]
+      # @param model [String]
       def initialize(api_key:, model: "claude-3-opus-20240229")
         @api_key = api_key
         @model = model
       end
 
       # rubocop:disable Metrics/MethodLength
+      # Perform the request
+      # @param messages [Array<Hash>]
+      # @param system_prompt [String]
+      # @param tools [Array<Hash>]
+      # @return [Hash]
       def call(messages:, system_prompt:, tools: [])
         body = {
           model: @model,
