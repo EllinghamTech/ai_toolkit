@@ -6,12 +6,17 @@ require_relative "response"
 module AiToolkit
   # Client for performing AI requests through a provider
   class Client
+    # @param provider [#call]
+    #   object that responds to `call`
     def initialize(provider)
       @provider = provider
     end
 
     # Perform a request with optional automatic tool usage
     # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+    # @param auto [Boolean] whether to automatically use tools
+    # @yield [RequestBuilder] builder for the request
+    # @return [Response]
     def request(auto: false)
       builder = RequestBuilder.new
       yield builder

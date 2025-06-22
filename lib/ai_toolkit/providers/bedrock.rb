@@ -11,12 +11,19 @@ module AiToolkit
   module Providers
     # Provider for Anthropic models via AWS Bedrock
     class Bedrock
+      # @param model_id [String]
+      # @param client [Aws::BedrockRuntime::Client, nil]
       def initialize(model_id:, client: nil)
         @client = client || Aws::BedrockRuntime::Client.new
         @model_id = model_id
       end
 
       # rubocop:disable Metrics/MethodLength
+      # Perform the request
+      # @param messages [Array<Hash>]
+      # @param system_prompt [String]
+      # @param tools [Array<Hash>]
+      # @return [Hash]
       def call(messages:, system_prompt:, tools: [])
         body = {
           anthropic_version: "bedrock-2023-05-31",

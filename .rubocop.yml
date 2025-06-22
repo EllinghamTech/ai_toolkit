@@ -3,6 +3,13 @@ AllCops:
   NewCops: enable
   SuggestExtensions: false
 
+require:
+  - rubocop-yard
+  - ./rubocop/require_yard_doc.rb
+
+YARD/RequireDocumentation:
+  Enabled: true
+
 Style/StringLiterals:
   Enabled: true
   EnforcedStyle: double_quotes
