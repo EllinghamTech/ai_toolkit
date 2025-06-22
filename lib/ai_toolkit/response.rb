@@ -5,6 +5,8 @@ module AiToolkit
   class Response
     attr_reader :stop_reason, :messages, :tool_uses
 
+    # @param data [Hash]
+    #   raw response data
     def initialize(data)
       @stop_reason = data[:stop_reason]
       @messages = data[:messages] || []
