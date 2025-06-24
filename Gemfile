@@ -11,3 +11,7 @@ gem "minitest", "~> 5.0"
 
 gem "rubocop", "~> 1.21"
 gem "rubocop-yard", "~> 0.8"
+
+group :docker do
+  gem "aws-sdk-bedrockruntime"
+end
