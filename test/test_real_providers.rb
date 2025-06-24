@@ -16,9 +16,15 @@ class TestRealProviders < Minitest::Test
 
     resp = client.request do |c|
       c.message :user, "Hello"
+      c.message :assistant, "Yes, how can I help you?"
+      c.message :user, "Give me a short story."
     end
 
     refute_empty resp.messages
+
+    # To prove to the testing user
+    puts resp.messages.to_json
+    puts resp.to_json
   end
 
   def test_bedrock_provider
@@ -31,9 +37,15 @@ class TestRealProviders < Minitest::Test
 
     resp = client.request do |c|
       c.message :user, "Hello"
+      c.message :assistant, "Yes, how can I help you?"
+      c.message :user, "Give me a short story."
     end
 
     refute_empty resp.messages
+
+    # To prove to the testing user
+    puts resp.messages.to_json
+    puts resp.to_json
   end
 end
 # rubocop:enable YARD/RequireDocumentation
