@@ -34,9 +34,19 @@ module AiToolkit
           iterations += 1
           response.tool_uses.each do |tu|
             tool = builder.tool_objects[tu[:name]]
-            next unless tool.respond_to?(:call)
+            next unless tool
 
-            tool_message = tool.call(tu[:input])
+            tool_message = begin
+              if tool.respond_to?(:perform)
+                tool.perform(tu[:input] || {})
+              else
+                tool.call(tu[:input])
+              end
+            rescue SafeToolError => e
+              e.message
+            rescue StandardError
+              Tool::INTERNAL_ERROR_MESSAGE
+            end
             messages << { role: "tool", name: tu[:name], content: tool_message }
           end
           data = @provider.call(messages: messages, system_prompt: system_prompt, tools: tools)
