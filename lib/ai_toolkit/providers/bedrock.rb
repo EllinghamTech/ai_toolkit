@@ -29,20 +29,46 @@ module AiToolkit
       def call(messages:, system_prompt:, tools: [], max_tokens: 1024)
         body = {
           anthropic_version: "bedrock-2023-05-31",
-          system: system_prompt,
           messages: messages,
           tools: tools,
           max_tokens: max_tokens
         }
+        body[:system] = system_prompt if system_prompt
         resp = @client.invoke_model(
           body: JSON.dump(body),
           model_id: @model_id,
           accept: "application/json",
           content_type: "application/json"
         )
-        JSON.parse(resp.body.string, symbolize_names: true)
+        raw = JSON.parse(resp.body.string, symbolize_names: true)
+        format_response(raw)
       end
       # rubocop:enable Metrics/MethodLength
+
+      private
+
+      # Convert the API response to the common format
+      # rubocop:disable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity
+      # @param data [Hash]
+      # @return [Hash]
+      def format_response(data)
+        out = { stop_reason: data[:stop_reason], messages: [], tool_uses: [] }
+        if data[:messages]
+          out[:messages] = data[:messages]
+          out[:tool_uses] = data[:tool_uses] || []
+        elsif data[:content]
+          data[:content].each do |item|
+            case item[:type]
+            when "text"
+              out[:messages] << { role: data[:role] || "assistant", content: item[:text] }
+            when "tool_use"
+              out[:tool_uses] << { name: item[:name], input: item[:input] }
+            end
+          end
+        end
+        out
+      end
+      # rubocop:enable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity
     end
   end
 end
