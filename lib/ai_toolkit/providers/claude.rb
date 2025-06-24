@@ -16,7 +16,7 @@ module AiToolkit
         @model = model
       end
 
-      # rubocop:disable Metrics/MethodLength
+      # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
       # Perform the request
       # @param messages [Array<Hash>]
       # @param system_prompt [String]
@@ -28,10 +28,10 @@ module AiToolkit
         body = {
           model: @model,
           max_tokens: max_tokens,
-          system: system_prompt,
           messages: messages,
           tools: tools
         }
+        body[:system] = system_prompt if system_prompt
         uri = URI(API_URL)
         req = Net::HTTP::Post.new(uri)
         req["x-api-key"] = @api_key
@@ -41,9 +41,35 @@ module AiToolkit
         res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
           http.request(req)
         end
-        JSON.parse(res.body, symbolize_names: true)
+        raw = JSON.parse(res.body, symbolize_names: true)
+        format_response(raw)
       end
-      # rubocop:enable Metrics/MethodLength
+      # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+
+      private
+
+      # Convert the API response to the common format
+      # rubocop:disable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity
+      # @param data [Hash]
+      # @return [Hash]
+      def format_response(data)
+        out = { stop_reason: data[:stop_reason], messages: [], tool_uses: [] }
+        if data[:messages]
+          out[:messages] = data[:messages]
+          out[:tool_uses] = data[:tool_uses] || []
+        elsif data[:content]
+          data[:content].each do |item|
+            case item[:type]
+            when "text"
+              out[:messages] << { role: data[:role] || "assistant", content: item[:text] }
+            when "tool_use"
+              out[:tool_uses] << { name: item[:name], input: item[:input] }
+            end
+          end
+        end
+        out
+      end
+      # rubocop:enable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity
     end
   end
 end
