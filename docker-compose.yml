@@ -1,0 +1,14 @@
+version: '3.9'
+services:
+  test:
+    build: .
+    environment:
+      CLAUDE_API_KEY: ${CLAUDE_API_KEY}
+      CLAUDE_MODEL: ${CLAUDE_MODEL}
+      BEDROCK_MODEL_ID: ${BEDROCK_MODEL_ID}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION:-uk-west-1}
+    volumes:
+      - .:/app
+    command: bundle exec rake test
