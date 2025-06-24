@@ -24,13 +24,13 @@ module AiToolkit
       # @param system_prompt [String]
       # @param tools [Array<Hash>]
       # @return [Hash]
-      def call(messages:, system_prompt:, tools: [])
+      def call(messages:, system_prompt:, tools: [], max_tokens: 1024)
         body = {
           anthropic_version: "bedrock-2023-05-31",
           system: system_prompt,
           messages: messages,
           tools: tools,
-          max_tokens: 1024
+          max_tokens: max_tokens
         }
         resp = @client.invoke_model(
           body: JSON.dump(body),

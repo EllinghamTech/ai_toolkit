@@ -21,6 +21,19 @@ class TestAiToolkit < Minitest::Test
     end
   end
 
+  class CaptureProvider
+    attr_reader :last_args
+
+    def initialize(response)
+      @response = response
+    end
+
+    def call(**args)
+      @last_args = args
+      @response
+    end
+  end
+
   # rubocop:disable Metrics/MethodLength
   # Test simple request
   # @return [void]
@@ -63,4 +76,36 @@ class TestAiToolkit < Minitest::Test
     assert_equal "done", resp.messages.first[:content]
   end
   # rubocop:enable Metrics/MethodLength
+
+  # @return [void]
+  def test_max_iterations_limit
+    provider = AiToolkit::Providers::Fake.new([
+                                                { stop_reason: "tool_use",
+                                                  tool_uses: [{ name: "echo", input: "one" }] },
+                                                { stop_reason: "tool_use",
+                                                  tool_uses: [{ name: "echo", input: "two" }] },
+                                                { stop_reason: "end_turn",
+                                                  messages: [{ role: "assistant", content: "done" }] }
+                                              ])
+    client = AiToolkit::Client.new(provider)
+
+    resp = client.request(auto: true, max_iterations: 1) do |c|
+      c.message :user, "start"
+      c.tool EchoTool.new
+    end
+
+    assert_equal "tool_use", resp.stop_reason
+  end
+
+  # @return [void]
+  def test_passes_max_tokens
+    provider = CaptureProvider.new({ stop_reason: "end_turn", messages: [] })
+    client = AiToolkit::Client.new(provider)
+
+    client.request(max_tokens: 55) do |c|
+      c.message :user, "hi"
+    end
+
+    assert_equal 55, provider.last_args[:max_tokens]
+  end
 end
