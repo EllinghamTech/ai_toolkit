@@ -24,10 +24,16 @@ class TestAiToolkit < Minitest::Test
   class CaptureProvider
     attr_reader :last_args
 
+    # @param response [Hash]
+    #   canned response to return
     def initialize(response)
       @response = response
     end
 
+    # Capture arguments and return the canned response.
+    # @param args [Hash]
+    #   arguments passed from the client
+    # @return [Hash]
     def call(**args)
       @last_args = args
       @response
@@ -77,6 +83,7 @@ class TestAiToolkit < Minitest::Test
   end
   # rubocop:enable Metrics/MethodLength
 
+  # rubocop:disable Metrics/MethodLength
   # @return [void]
   def test_max_iterations_limit
     provider = AiToolkit::Providers::Fake.new([
@@ -96,6 +103,7 @@ class TestAiToolkit < Minitest::Test
 
     assert_equal "tool_use", resp.stop_reason
   end
+  # rubocop:enable Metrics/MethodLength
 
   # @return [void]
   def test_passes_max_tokens
