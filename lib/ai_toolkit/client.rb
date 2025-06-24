@@ -15,9 +15,11 @@ module AiToolkit
     # Perform a request with optional automatic tool usage
     # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
     # @param auto [Boolean] whether to automatically use tools
+    # @param max_tokens [Integer] maximum tokens allowed in the provider call
+    # @param max_iterations [Integer] maximum tool iterations when auto mode is enabled
     # @yield [RequestBuilder] builder for the request
     # @return [Response]
-    def request(auto: false)
+    def request(auto: false, max_tokens: 1024, max_iterations: 5)
       builder = RequestBuilder.new
       yield builder
 
@@ -25,12 +27,12 @@ module AiToolkit
       system_prompt = builder.system_prompt
       tools = builder.tools
 
-      data = @provider.call(messages: messages, system_prompt: system_prompt, tools: tools)
+      data = @provider.call(messages: messages, system_prompt: system_prompt, tools: tools, max_tokens: max_tokens)
       response = Response.new(data)
 
       if auto
         iterations = 0
-        while response.stop_reason == "tool_use" && iterations < 5
+        while response.stop_reason == "tool_use" && iterations < max_iterations
           iterations += 1
           response.tool_uses.each do |tu|
             tool = builder.tool_objects[tu[:name]]
@@ -39,7 +41,7 @@ module AiToolkit
             tool_message = tool.call(tu[:input])
             messages << { role: "tool", name: tu[:name], content: tool_message }
           end
-          data = @provider.call(messages: messages, system_prompt: system_prompt, tools: tools)
+          data = @provider.call(messages: messages, system_prompt: system_prompt, tools: tools, max_tokens: max_tokens)
           response = Response.new(data)
         end
       end
