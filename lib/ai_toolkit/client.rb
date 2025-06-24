@@ -15,6 +15,8 @@ module AiToolkit
     # Perform a request with optional automatic tool usage
     # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
     # @param auto [Boolean] whether to automatically use tools
+    # @param max_tokens [Integer] maximum tokens allowed in the provider call
+    # @param max_iterations [Integer] maximum tool iterations when auto mode is enabled
     # @yield [RequestBuilder] builder for the request
     # @return [Response]
     def request(auto: false, max_tokens: 1024, max_iterations: 5)
