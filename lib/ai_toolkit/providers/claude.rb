@@ -21,11 +21,13 @@ module AiToolkit
       # @param messages [Array<Hash>]
       # @param system_prompt [String]
       # @param tools [Array<Hash>]
+      # @param max_tokens [Integer]
+      #   maximum tokens allowed in the request
       # @return [Hash]
-      def call(messages:, system_prompt:, tools: [])
+      def call(messages:, system_prompt:, tools: [], max_tokens: 1024)
         body = {
           model: @model,
-          max_tokens: 1024,
+          max_tokens: max_tokens,
           system: system_prompt,
           messages: messages,
           tools: tools

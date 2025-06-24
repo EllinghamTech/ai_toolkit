@@ -12,7 +12,7 @@ module AiToolkit
 
       # Return the next response
       # @return [Hash]
-      def call(messages: nil, system_prompt: nil, tools: nil) # rubocop:disable Lint/UnusedMethodArgument
+      def call(messages: nil, system_prompt: nil, tools: nil, max_tokens: nil) # rubocop:disable Lint/UnusedMethodArgument
         resp = @responses[@index]
         @index += 1 if @index < @responses.length - 1
         resp
