@@ -25,6 +25,12 @@ end
 
 See `lib/ai_toolkit/providers/claude.rb` and `lib/ai_toolkit/providers/bedrock.rb` for the provider implementations.
 
+To use the Bedrock provider you need the [`aws-sdk-bedrockruntime`](https://github.com/aws/aws-sdk-ruby) gem. This gem is not included in `ai_toolkit`'s runtime dependencies, so install it separately when required:
+
+```bash
+gem install aws-sdk-bedrockruntime
+```
+
 Run the test suite with:
 
 ```
