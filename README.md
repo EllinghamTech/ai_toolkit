@@ -40,6 +40,14 @@ To use the Bedrock provider you need the [`aws-sdk-bedrockruntime`](https://gith
 gem install aws-sdk-bedrockruntime
 ```
 
+When building the Docker image for testing with `docker-compose`, the gem is
+installed automatically via Bundler's `docker` group:
+
+```bash
+docker-compose build
+docker-compose up
+```
+
 Run the test suite with:
 
 ```
