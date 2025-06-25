@@ -54,8 +54,7 @@ module AiToolkit
         # returns tool requests (or pause tokens) or the iteration limit is hit.
         iterations = 0
         final_stop_reason = nil
-        while %w[tool_use pause_turn].include?(response.stop_reason) &&
-              iterations < max_iterations
+        while %w[tool_use pause_turn].include?(response.stop_reason) && iterations < max_iterations
           iterations += 1
           stop_loop = false
 

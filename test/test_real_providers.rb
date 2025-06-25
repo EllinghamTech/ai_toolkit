@@ -88,5 +88,30 @@ class TestRealProviders < Minitest::Test
     puts resp.to_json
   end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+
+  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  def test_claude_web_search
+    puts "Claude web_search"
+    skip "CLAUDE_API_KEY not set" unless ENV["CLAUDE_API_KEY"]
+
+    provider = AiToolkit::Providers::Claude.new(
+      api_key: ENV.fetch("CLAUDE_API_KEY", nil),
+      model: ENV.fetch("CLAUDE_MODEL", nil)
+    )
+    client = AiToolkit::Client.new(provider)
+
+    resp = client.request do |c|
+      c.system_prompt "You can use the web_search tool to find information."
+      c.tool :web_search, nil, type: "web_search_20250305"
+      c.message :user, "Search the web for Ruby programming language."
+    end
+
+    refute_empty resp.messages
+
+    # To prove to the testing user
+    puts resp.messages.to_json
+    puts resp.to_json
+  end
+  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 end
 # rubocop:enable YARD/RequireDocumentation
