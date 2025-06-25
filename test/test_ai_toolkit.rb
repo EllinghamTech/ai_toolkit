@@ -244,6 +244,28 @@ class TestAiToolkit < Minitest::Test
       assert_equal expected[i], r.content
     end
   end
+
+  # Ensure additional message types are preserved
+  def test_additional_message_types
+    provider = AiToolkit::Providers::Fake.new([
+                                                {
+                                                  stop_reason: "end_turn",
+                                                  messages: [
+                                                    { role: "assistant", content: { type: "server_tool_use", id: "1", name: "web_search", input: { query: "ruby" } } },
+                                                    { role: "assistant", content: { type: "web_search_tool_result", tool_use_id: "1", content: "result" } }
+                                                  ]
+                                                }
+                                              ])
+    client = AiToolkit::Client.new(provider)
+
+    resp = client.request do |c|
+      c.message :user, "hi"
+    end
+
+    assert_equal 2, resp.results.length
+    assert_equal({ type: "server_tool_use", id: "1", name: "web_search", input: { query: "ruby" } }, resp.results[0].content)
+    assert_equal({ type: "web_search_tool_result", tool_use_id: "1", content: "result" }, resp.results[1].content)
+  end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 end
 # rubocop:enable Metrics/ClassLength
