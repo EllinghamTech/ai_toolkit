@@ -41,17 +41,20 @@ module AiToolkit
           messages: messages,
           tools: tools
         }
+
         body[:temperature] = temperature if temperature
         body[:top_k] = top_k if top_k
         body[:top_p] = top_p if top_p
         body[:tool_choice] = tool_choice if tool_choice
         body[:system] = system_prompt if system_prompt
+
         uri = URI(API_URL)
+
         req = Net::HTTP::Post.new(uri)
         req["x-api-key"] = @api_key
         req["anthropic-version"] = "2023-06-01"
         req["content-type"] = "application/json"
-        req.body = JSON.dump(body)
+        req.body = body.to_json
 
         res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
           http.request(req)
@@ -70,6 +73,7 @@ module AiToolkit
       # @return [Hash]
       def format_response(data)
         out = { stop_reason: data[:stop_reason], messages: [], tool_uses: [] }
+
         if data[:messages]
           out[:messages] = data[:messages]
           if data[:tool_uses]
@@ -94,6 +98,7 @@ module AiToolkit
             end
           end
         end
+
         out
       end
       # rubocop:enable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity

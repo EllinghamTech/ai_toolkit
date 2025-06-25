@@ -102,7 +102,7 @@ class TestRealProviders < Minitest::Test
 
     resp = client.request do |c|
       c.system_prompt "You can use the web_search tool to find information."
-      c.tool :web_search
+      c.tool :web_search, nil, type: 'web_search_20250305'
       c.message :user, "Search the web for Ruby programming language."
     end
 
