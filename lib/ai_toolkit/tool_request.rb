@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'result_item'
+require_relative "result_item"
 
 module AiToolkit
   # Represents a tool request from the LLM.
@@ -11,6 +11,7 @@ module AiToolkit
     # @param name [String]
     # @param input [Object]
     def initialize(id:, name:, input:)
+      super()
       @id = id
       @name = name
       @input = input
