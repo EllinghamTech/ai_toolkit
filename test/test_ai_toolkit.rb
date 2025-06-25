@@ -67,7 +67,7 @@ class TestAiToolkit < Minitest::Test
     assert_equal "end_turn", resp.stop_reason
     assert_equal "hi", resp.messages.first[:content]
     assert_equal 1, resp.results.length
-    assert_instance_of AiToolkit::Response::MessageResult, resp.results.first
+    assert_instance_of AiToolkit::MessageResult, resp.results.first
   end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
@@ -91,9 +91,9 @@ class TestAiToolkit < Minitest::Test
     assert_equal "end_turn", resp.stop_reason
     assert_equal "done", resp.messages.first[:content]
     assert_equal 3, resp.results.length
-    assert_instance_of AiToolkit::Response::ToolRequest, resp.results[0]
-    assert_instance_of AiToolkit::Response::ToolResponse, resp.results[1]
-    assert_instance_of AiToolkit::Response::MessageResult, resp.results[2]
+    assert_instance_of AiToolkit::ToolRequest, resp.results[0]
+    assert_instance_of AiToolkit::ToolResponse, resp.results[1]
+    assert_instance_of AiToolkit::MessageResult, resp.results[2]
   end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
@@ -117,9 +117,9 @@ class TestAiToolkit < Minitest::Test
 
     assert_equal "tool_use", resp.stop_reason
     assert_equal 3, resp.results.length
-    assert_instance_of AiToolkit::Response::ToolRequest, resp.results[0]
-    assert_instance_of AiToolkit::Response::ToolResponse, resp.results[1]
-    assert_instance_of AiToolkit::Response::ToolRequest, resp.results[2]
+    assert_instance_of AiToolkit::ToolRequest, resp.results[0]
+    assert_instance_of AiToolkit::ToolResponse, resp.results[1]
+    assert_instance_of AiToolkit::ToolRequest, resp.results[2]
   end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
@@ -183,8 +183,8 @@ class TestAiToolkit < Minitest::Test
 
     assert_equal "tool_stop", resp.stop_reason
     assert_equal 2, resp.results.length
-    assert_instance_of AiToolkit::Response::ToolRequest, resp.results[0]
-    assert_instance_of AiToolkit::Response::ToolResponse, resp.results[1]
+    assert_instance_of AiToolkit::ToolRequest, resp.results[0]
+    assert_instance_of AiToolkit::ToolResponse, resp.results[1]
   end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 end
