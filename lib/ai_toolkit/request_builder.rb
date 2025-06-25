@@ -31,12 +31,25 @@ module AiToolkit
     end
 
     # Register a tool for the request
+    #
+    # For Claude built-in server side tools, pass the tool name (String or
+    # Symbol) along with optional configuration options. For client side tools,
+    # provide an object that responds to `#name`, `#description` and
+    # `#perform`.
+    #
     # @param name_or_obj [String, Symbol, Object]
     #   tool name or object
     # @param schema [Hash, nil]
-    def tool(name_or_obj, schema = nil)
+    #   JSON schema for client side tool input. Ignored for server side tools.
+    # @param opts [Hash]
+    #   additional options for Claude built-in tools (e.g. `max_uses`)
+    # @return [void]
+    def tool(name_or_obj, schema = nil, **opts)
       if name_or_obj.is_a?(Symbol) || name_or_obj.is_a?(String)
-        @tools << { name: name_or_obj.to_s, input_schema: schema }
+        spec = { name: name_or_obj.to_s }
+        spec[:input_schema] = schema if schema
+        spec.merge!(opts) unless opts.empty?
+        @tools << spec
       else
         @tool_objects[name_or_obj.name.to_s] = name_or_obj
         @tools << name_or_obj.tool_spec if name_or_obj.respond_to?(:tool_spec)

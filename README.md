@@ -11,6 +11,15 @@ response = client.request do |c|
 end
 ```
 
+For Claude built-in server side tools, just provide the tool name and any
+configuration options:
+
+```ruby
+client.request do |c|
+  c.tool :web_search, max_uses: 3, allowed_domains: ['example.com']
+end
+```
+
 The response object exposes the stop reason and a chronologically ordered list of
 results via `#results`. Each element of this array is one of three objects:
 `AiToolkit::MessageResult` for LLM messages, `AiToolkit::ToolRequest`
