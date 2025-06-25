@@ -6,6 +6,9 @@ module AiToolkit
   # Error used to indicate that a tool failure should be shown to the LLM.
   class SafeToolError < StandardError; end
 
+  # Error used by a tool to signal the auto loop should terminate.
+  class StopToolLoop < StandardError; end
+
   # Abstract base class for defining tools usable by the client.
   class Tool
     class << self
@@ -67,6 +70,8 @@ module AiToolkit
       perform(params)
     rescue SafeToolError => e
       e.message
+    rescue StopToolLoop
+      raise
     rescue StandardError
       "There was an internal error with this call tool due to a code exception"
     end
