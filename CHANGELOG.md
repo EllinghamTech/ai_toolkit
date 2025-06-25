@@ -1,8 +1,8 @@
-## [Unreleased]
-### Added
-- Configurable `max_tokens` and `max_iterations` options for `Client#request`.
-- `tool_choice` option for requests and `StopToolLoop` to end auto tool loops.
-
 ## [0.1.0] - 2025-06-22
-
-- Initial release
+### Added
+- Simple Ruby DSL for building Claude requests with `system_prompt`, `message`, and `tool` calls.
+- Provider implementations for Claude and AWS Bedrock.
+- Automatic tool loops via the `auto` option with termination using `StopToolLoop`.
+- Configurable generation options like `temperature`, `top_k`, and `top_p`.
+- Configurable `max_tokens` and `max_iterations` options for `Client#request`.
+- `tool_choice` option for requests to force a specific tool.
