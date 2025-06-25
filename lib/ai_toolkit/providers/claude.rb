@@ -25,14 +25,25 @@ module AiToolkit
       #   maximum tokens allowed in the request
       # @param tool_choice [Hash, nil]
       #   optional tool selection
+      # @param temperature [Float, nil]
+      #   randomness of generation
+      # @param top_k [Integer, nil]
+      #   candidates considered at each step
+      # @param top_p [Float, nil]
+      #   probability mass for nucleus sampling
       # @return [Hash]
-      def call(messages:, system_prompt:, tools: [], max_tokens: 1024, tool_choice: nil)
+      # rubocop:disable Metrics/ParameterLists
+      def call(messages:, system_prompt:, tools: [], max_tokens: 1024,
+               tool_choice: nil, temperature: nil, top_k: nil, top_p: nil)
         body = {
           model: @model,
           max_tokens: max_tokens,
           messages: messages,
           tools: tools
         }
+        body[:temperature] = temperature if temperature
+        body[:top_k] = top_k if top_k
+        body[:top_p] = top_p if top_p
         body[:tool_choice] = tool_choice if tool_choice
         body[:system] = system_prompt if system_prompt
         uri = URI(API_URL)
@@ -49,7 +60,7 @@ module AiToolkit
         raw = JSON.parse(res.body, symbolize_names: true)
         format_response(raw)
       end
-      # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+      # rubocop:enable Metrics/MethodLength, Metrics/AbcSize, Metrics/ParameterLists
 
       private
 
