@@ -25,14 +25,17 @@ module AiToolkit
       # @param tools [Array<Hash>]
       # @param max_tokens [Integer]
       #   maximum tokens allowed in the request
+      # @param tool_choice [Hash, nil]
+      #   optional tool selection
       # @return [Hash]
-      def call(messages:, system_prompt:, tools: [], max_tokens: 1024)
+      def call(messages:, system_prompt:, tools: [], max_tokens: 1024, tool_choice: nil)
         body = {
           anthropic_version: "bedrock-2023-05-31",
           messages: messages,
           tools: tools,
           max_tokens: max_tokens
         }
+        body[:tool_choice] = tool_choice if tool_choice
 
         body[:system] = system_prompt if system_prompt
         resp = @client.invoke_model(

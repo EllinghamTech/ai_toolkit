@@ -134,4 +134,57 @@ class TestAiToolkit < Minitest::Test
 
     assert_equal 55, provider.last_args[:max_tokens]
   end
+
+  # @return [void]
+  def test_passes_tool_choice
+    provider = CaptureProvider.new({ stop_reason: "end_turn", messages: [] })
+    client = AiToolkit::Client.new(provider)
+
+    client.request(tool_choice: { type: "tool", name: "echo" }) do |c|
+      c.message :user, "hi"
+    end
+
+    assert_equal({ type: "tool", name: "echo" }, provider.last_args[:tool_choice])
+  end
+
+  class StopTool < AiToolkit::Tool
+    input_schema({ type: "object" })
+
+    # @return [String]
+    def name
+      "stop"
+    end
+
+    # @return [String]
+    def description
+      "stop desc"
+    end
+
+    # @param _params [Hash]
+    # @return [void]
+    def perform(_params)
+      raise AiToolkit::StopToolLoop, "done"
+    end
+  end
+
+  # @return [void]
+  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  def test_tool_can_end_loop
+    provider = AiToolkit::Providers::Fake.new([
+                                                { stop_reason: "tool_use",
+                                                  tool_uses: [{ name: "stop", input: {} }] }
+                                              ])
+    client = AiToolkit::Client.new(provider)
+
+    resp = client.request(auto: true) do |c|
+      c.message :user, "hi"
+      c.tool StopTool.new
+    end
+
+    assert_equal "tool_stop", resp.stop_reason
+    assert_equal 2, resp.results.length
+    assert_instance_of AiToolkit::Response::ToolRequest, resp.results[0]
+    assert_instance_of AiToolkit::Response::ToolResponse, resp.results[1]
+  end
+  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 end
