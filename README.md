@@ -38,6 +38,15 @@ client.request(auto: true, max_tokens: 2048, max_iterations: 10,
 end
 ```
 
+Additional generation options like `temperature`, `top_k`, and `top_p` can also
+be specified and are passed directly through to the provider:
+
+```ruby
+client.request(temperature: 0.2, top_k: 5, top_p: 0.9) do |c|
+  c.message :user, 'Hello'
+end
+```
+
 When using `auto`, a tool may terminate further LLM calls by raising
 `AiToolkit::StopToolLoop` from `#perform`.
 

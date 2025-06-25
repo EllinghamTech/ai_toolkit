@@ -19,8 +19,13 @@ module AiToolkit
     # @param max_iterations [Integer] maximum tool iterations when auto mode is enabled
     # @param tool_choice [Hash, nil] tool selection sent to the provider
     # @yield [RequestBuilder] builder for the request
+    # @param temperature [Float, nil] randomness of generation
+    # @param top_k [Integer, nil] candidates considered at each step
+    # @param top_p [Float, nil] probability mass for nucleus sampling
     # @return [Response]
-    def request(auto: false, max_tokens: 1024, max_iterations: 5, tool_choice: nil)
+    # rubocop:disable Metrics/ParameterLists
+    def request(auto: false, max_tokens: 1024, max_iterations: 5, tool_choice: nil,
+                temperature: nil, top_k: nil, top_p: nil)
       builder = RequestBuilder.new
       yield builder
 
@@ -33,7 +38,10 @@ module AiToolkit
         system_prompt: system_prompt,
         tools: tools,
         max_tokens: max_tokens,
-        tool_choice: tool_choice
+        tool_choice: tool_choice,
+        temperature: temperature,
+        top_k: top_k,
+        top_p: top_p
       )
       response = Response.new(data)
 
@@ -104,7 +112,10 @@ module AiToolkit
             system_prompt: system_prompt,
             tools: tools,
             max_tokens: max_tokens,
-            tool_choice: tool_choice
+            tool_choice: tool_choice,
+            temperature: temperature,
+            top_k: top_k,
+            top_p: top_p
           )
 
           response = Response.new(data)
@@ -127,6 +138,6 @@ module AiToolkit
       Response.new({ stop_reason: stop_reason, messages: response.messages, tool_uses: response.tool_uses },
                    results: results)
     end
-    # rubocop:enable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+    # rubocop:enable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Metrics/ParameterLists
   end
 end
