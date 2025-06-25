@@ -38,10 +38,12 @@ module AiToolkit
       response = Response.new(data)
 
       results = response.messages.map do |msg|
-        Response::MessageResult.new(role: msg[:role], content: msg[:content])
+        MessageResult.new(role: msg[:role], content: msg[:content])
       end
 
       if auto
+        # Keep requesting and executing tools until the provider no longer
+        # returns tool requests or the iteration limit is hit.
         iterations = 0
         final_stop_reason = nil
         while response.stop_reason == "tool_use" && iterations < max_iterations
@@ -50,6 +52,7 @@ module AiToolkit
 
           # rubocop:disable Metrics/BlockLength
           response.tool_uses.each do |tu|
+            # Look up the registered tool object and record the request.
             tool = builder.tool_objects[tu[:name]]
 
             messages << {
@@ -64,11 +67,12 @@ module AiToolkit
               ]
             }
 
-            results << Response::ToolRequest.new(id: tu[:id], name: tu[:name], input: tu[:input])
+            results << ToolRequest.new(id: tu[:id], name: tu[:name], input: tu[:input])
 
             begin
               tool_message = tool.call(tu[:input])
             rescue StopToolLoop => e
+              # Tool requests termination of the auto loop.
               tool_message = e.message
               stop_loop = true
             end
@@ -83,13 +87,14 @@ module AiToolkit
               ]
             }
 
-            results << Response::ToolResponse.new(tool_use_id: tu[:id], content: tool_message)
+            results << ToolResponse.new(tool_use_id: tu[:id], content: tool_message)
 
             break if stop_loop
           end
           # rubocop:enable Metrics/BlockLength
 
           if stop_loop
+            # A tool explicitly requested that we stop looping.
             final_stop_reason = "tool_stop"
             break
           end
@@ -105,14 +110,16 @@ module AiToolkit
           response = Response.new(data)
 
           response.messages.each do |msg|
-            results << Response::MessageResult.new(role: msg[:role], content: msg[:content])
+            results << MessageResult.new(role: msg[:role], content: msg[:content])
           end
         end
       end
 
       unless response.tool_uses.empty? || final_stop_reason
+        # Auto mode might stop before all tool requests are handled. Capture
+        # any remaining requests so the caller sees the full conversation.
         response.tool_uses.each do |tu|
-          results << Response::ToolRequest.new(id: tu[:id], name: tu[:name], input: tu[:input])
+          results << ToolRequest.new(id: tu[:id], name: tu[:name], input: tu[:input])
         end
       end
 
