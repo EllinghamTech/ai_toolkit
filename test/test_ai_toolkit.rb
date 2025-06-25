@@ -3,21 +3,29 @@
 require "test_helper"
 
 class TestAiToolkit < Minitest::Test
-  class EchoTool
+  class EchoTool < AiToolkit::Tool
+    input_schema(
+      {
+        type: "object",
+        properties: { text: { type: "string" } },
+        required: ["text"]
+      }
+    )
+
     # @return [String]
     def name
       "echo"
     end
 
-    # @param input [String]
     # @return [String]
-    def call(input)
-      "echo: #{input}"
+    def description
+      "Echoes the provided text back"
     end
 
-    # @return [Hash]
-    def tool_spec
-      { name: name, input_schema: {} }
+    # @param params [Hash]
+    # @return [String]
+    def perform(params)
+      params[:text]
     end
   end
 

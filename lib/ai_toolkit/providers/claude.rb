@@ -38,9 +38,11 @@ module AiToolkit
         req["anthropic-version"] = "2023-06-01"
         req["content-type"] = "application/json"
         req.body = JSON.dump(body)
+
         res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
           http.request(req)
         end
+
         raw = JSON.parse(res.body, symbolize_names: true)
         format_response(raw)
       end

@@ -33,6 +33,7 @@ module AiToolkit
           tools: tools,
           max_tokens: max_tokens
         }
+
         body[:system] = system_prompt if system_prompt
         resp = @client.invoke_model(
           body: JSON.dump(body),
@@ -40,6 +41,7 @@ module AiToolkit
           accept: "application/json",
           content_type: "application/json"
         )
+
         raw = JSON.parse(resp.body.string, symbolize_names: true)
         format_response(raw)
       end
