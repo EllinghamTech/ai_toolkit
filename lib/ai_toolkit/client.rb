@@ -34,14 +34,49 @@ module AiToolkit
         iterations = 0
         while response.stop_reason == "tool_use" && iterations < max_iterations
           iterations += 1
+
+          # Preserve any plain messages returned by the provider
+          response.messages.each do |msg|
+            messages << msg
+          end
+
           response.tool_uses.each do |tu|
             tool = builder.tool_objects[tu[:name]]
+
+            messages << {
+              role: "assistant",
+              content: [
+                {
+                  type: "tool_use",
+                  id: tu[:id],
+                  name: tu[:name],
+                  input: tu[:input]
+                }
+              ]
+            }
+
             next unless tool.respond_to?(:call)
 
             tool_message = tool.call(tu[:input])
-            messages << { role: "tool", name: tu[:name], content: tool_message }
+
+            messages << {
+              role: "user",
+              content: [
+                {
+                  type: "tool_result",
+                  tool_use_id: tu[:id],
+                  content: tool_message
+                }
+              ]
+            }
           end
-          data = @provider.call(messages: messages, system_prompt: system_prompt, tools: tools, max_tokens: max_tokens)
+
+          data = @provider.call(
+            messages: messages,
+            system_prompt: system_prompt,
+            tools: tools,
+            max_tokens: max_tokens
+          )
           response = Response.new(data)
         end
       end

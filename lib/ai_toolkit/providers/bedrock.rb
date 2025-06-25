@@ -55,14 +55,23 @@ module AiToolkit
         out = { stop_reason: data[:stop_reason], messages: [], tool_uses: [] }
         if data[:messages]
           out[:messages] = data[:messages]
-          out[:tool_uses] = data[:tool_uses] || []
+          if data[:tool_uses]
+            out[:tool_uses] = data[:tool_uses]
+          else
+            data[:messages].each do |m|
+              next unless m[:tool_use]
+
+              tu = m[:tool_use]
+              out[:tool_uses] << { id: tu[:id], name: tu[:name], input: tu[:input] }
+            end
+          end
         elsif data[:content]
           data[:content].each do |item|
             case item[:type]
             when "text"
               out[:messages] << { role: data[:role] || "assistant", content: item[:text] }
             when "tool_use"
-              out[:tool_uses] << { name: item[:name], input: item[:input] }
+              out[:tool_uses] << { id: item[:id], name: item[:name], input: item[:input] }
             end
           end
         end
