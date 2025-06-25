@@ -89,6 +89,8 @@ module AiToolkit
               out[:messages] << { role: data[:role] || "assistant", content: item[:text] }
             when "tool_use"
               out[:tool_uses] << { id: item[:id], name: item[:name], input: item[:input] }
+            else
+              out[:messages] << { role: data[:role] || "assistant", content: item }
             end
           end
         end
