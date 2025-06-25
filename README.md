@@ -11,7 +11,11 @@ response = client.request do |c|
 end
 ```
 
-The response object exposes the raw messages, any requested tool uses and the stop reason.
+The response object exposes the stop reason and a chronologically ordered list of
+results via `#results`. Each element of this array is one of three objects:
+`AiToolkit::Response::MessageResult` for LLM messages, `AiToolkit::Response::ToolRequest`
+for tool calls requested by the LLM, and `AiToolkit::Response::ToolResponse` for
+the data returned back to the model from executed tools.
 
 Enabling automatic tool looping is as easy as:
 

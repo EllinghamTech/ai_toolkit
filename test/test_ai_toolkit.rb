@@ -66,6 +66,8 @@ class TestAiToolkit < Minitest::Test
 
     assert_equal "end_turn", resp.stop_reason
     assert_equal "hi", resp.messages.first[:content]
+    assert_equal 1, resp.results.length
+    assert_instance_of AiToolkit::Response::MessageResult, resp.results.first
   end
   # rubocop:enable Metrics/MethodLength
 
@@ -88,6 +90,10 @@ class TestAiToolkit < Minitest::Test
 
     assert_equal "end_turn", resp.stop_reason
     assert_equal "done", resp.messages.first[:content]
+    assert_equal 3, resp.results.length
+    assert_instance_of AiToolkit::Response::ToolRequest, resp.results[0]
+    assert_instance_of AiToolkit::Response::ToolResponse, resp.results[1]
+    assert_instance_of AiToolkit::Response::MessageResult, resp.results[2]
   end
   # rubocop:enable Metrics/MethodLength
 
@@ -110,6 +116,10 @@ class TestAiToolkit < Minitest::Test
     end
 
     assert_equal "tool_use", resp.stop_reason
+    assert_equal 3, resp.results.length
+    assert_instance_of AiToolkit::Response::ToolRequest, resp.results[0]
+    assert_instance_of AiToolkit::Response::ToolResponse, resp.results[1]
+    assert_instance_of AiToolkit::Response::ToolRequest, resp.results[2]
   end
   # rubocop:enable Metrics/MethodLength
 
