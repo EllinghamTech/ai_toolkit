@@ -23,14 +23,17 @@ module AiToolkit
       # @param tools [Array<Hash>]
       # @param max_tokens [Integer]
       #   maximum tokens allowed in the request
+      # @param tool_choice [Hash, nil]
+      #   optional tool selection
       # @return [Hash]
-      def call(messages:, system_prompt:, tools: [], max_tokens: 1024)
+      def call(messages:, system_prompt:, tools: [], max_tokens: 1024, tool_choice: nil)
         body = {
           model: @model,
           max_tokens: max_tokens,
           messages: messages,
           tools: tools
         }
+        body[:tool_choice] = tool_choice if tool_choice
         body[:system] = system_prompt if system_prompt
         uri = URI(API_URL)
         req = Net::HTTP::Post.new(uri)
