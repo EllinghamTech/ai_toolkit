@@ -27,18 +27,19 @@ module AiToolkit
       system_prompt = builder.system_prompt
       tools = builder.tools
 
+      results = []
+
       data = @provider.call(messages: messages, system_prompt: system_prompt, tools: tools, max_tokens: max_tokens)
       response = Response.new(data)
+
+      response.messages.each do |msg|
+        results << Response::MessageResult.new(role: msg[:role], content: msg[:content])
+      end
 
       if auto
         iterations = 0
         while response.stop_reason == "tool_use" && iterations < max_iterations
           iterations += 1
-
-          # Preserve any plain messages returned by the provider
-          response.messages.each do |msg|
-            messages << msg
-          end
 
           response.tool_uses.each do |tu|
             tool = builder.tool_objects[tu[:name]]
@@ -55,6 +56,8 @@ module AiToolkit
               ]
             }
 
+            results << Response::ToolRequest.new(id: tu[:id], name: tu[:name], input: tu[:input])
+
             tool_message = tool.call(tu[:input])
             messages << {
               role: "user",
@@ -66,6 +69,8 @@ module AiToolkit
                 }
               ]
             }
+
+            results << Response::ToolResponse.new(tool_use_id: tu[:id], content: tool_message)
           end
 
           data = @provider.call(
@@ -76,10 +81,20 @@ module AiToolkit
           )
 
           response = Response.new(data)
+
+          response.messages.each do |msg|
+            results << Response::MessageResult.new(role: msg[:role], content: msg[:content])
+          end
         end
       end
 
-      response
+      unless response.tool_uses.empty?
+        response.tool_uses.each do |tu|
+          results << Response::ToolRequest.new(id: tu[:id], name: tu[:name], input: tu[:input])
+        end
+      end
+
+      Response.new({ stop_reason: response.stop_reason, messages: response.messages, tool_uses: response.tool_uses }, results: results)
     end
     # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
   end
