@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative 'result_item'
-require_relative 'tool_request'
-require_relative 'tool_response'
-require_relative 'message_result'
+require_relative "result_item"
+require_relative "tool_request"
+require_relative "tool_response"
+require_relative "message_result"
 
 module AiToolkit
   # Structured response returned from the provider

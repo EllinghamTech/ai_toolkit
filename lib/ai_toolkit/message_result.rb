@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'result_item'
+require_relative "result_item"
 
 module AiToolkit
   # Represents a normal message from the LLM.
@@ -10,6 +10,7 @@ module AiToolkit
     # @param role [String]
     # @param content [String]
     def initialize(role:, content:)
+      super()
       @role = role
       @content = content
     end
