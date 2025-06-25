@@ -147,6 +147,20 @@ class TestAiToolkit < Minitest::Test
     assert_equal({ type: "tool", name: "echo" }, provider.last_args[:tool_choice])
   end
 
+  # @return [void]
+  def test_builtin_tool_with_options
+    provider = CaptureProvider.new({ stop_reason: "end_turn", messages: [] })
+    client = AiToolkit::Client.new(provider)
+
+    client.request do |c|
+      c.message :user, "hi"
+      c.tool :web_search, nil, max_uses: 2, allowed_domains: ["example.com"]
+    end
+
+    assert_equal [{ name: "web_search", max_uses: 2,
+                    allowed_domains: ["example.com"] }], provider.last_args[:tools]
+  end
+
   class StopTool < AiToolkit::Tool
     input_schema({ type: "object" })
 
