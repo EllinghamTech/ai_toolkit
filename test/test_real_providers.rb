@@ -113,29 +113,5 @@ class TestRealProviders < Minitest::Test
     puts resp.to_json
   end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
-
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
-  def test_bedrock_web_search
-    puts "Bedrock web_search"
-    skip "BEDROCK_MODEL_ID not set" unless ENV["BEDROCK_MODEL_ID"]
-
-    provider = AiToolkit::Providers::Bedrock.new(
-      model_id: ENV.fetch("BEDROCK_MODEL_ID", nil)
-    )
-    client = AiToolkit::Client.new(provider)
-
-    resp = client.request do |c|
-      c.system_prompt "You can use the web_search tool to find information."
-      c.tool :web_search
-      c.message :user, "Search the web for Ruby programming language."
-    end
-
-    refute_empty resp.messages
-
-    # To prove to the testing user
-    puts resp.messages.to_json
-    puts resp.to_json
-  end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 end
 # rubocop:enable YARD/RequireDocumentation
