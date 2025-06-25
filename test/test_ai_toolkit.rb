@@ -48,7 +48,7 @@ class TestAiToolkit < Minitest::Test
     end
   end
 
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
   # Test simple request
   # @return [void]
   def test_request_returns_response
@@ -69,9 +69,9 @@ class TestAiToolkit < Minitest::Test
     assert_equal 1, resp.results.length
     assert_instance_of AiToolkit::Response::MessageResult, resp.results.first
   end
-  # rubocop:enable Metrics/MethodLength
+  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
   # Test auto tool loop
   # @return [void]
   def test_auto_tool_loop
@@ -95,9 +95,9 @@ class TestAiToolkit < Minitest::Test
     assert_instance_of AiToolkit::Response::ToolResponse, resp.results[1]
     assert_instance_of AiToolkit::Response::MessageResult, resp.results[2]
   end
-  # rubocop:enable Metrics/MethodLength
+  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
   # @return [void]
   def test_max_iterations_limit
     provider = AiToolkit::Providers::Fake.new([
@@ -121,7 +121,7 @@ class TestAiToolkit < Minitest::Test
     assert_instance_of AiToolkit::Response::ToolResponse, resp.results[1]
     assert_instance_of AiToolkit::Response::ToolRequest, resp.results[2]
   end
-  # rubocop:enable Metrics/MethodLength
+  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   # @return [void]
   def test_passes_max_tokens

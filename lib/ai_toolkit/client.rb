@@ -13,7 +13,7 @@ module AiToolkit
     end
 
     # Perform a request with optional automatic tool usage
-    # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+    # rubocop:disable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
     # @param auto [Boolean] whether to automatically use tools
     # @param max_tokens [Integer] maximum tokens allowed in the provider call
     # @param max_iterations [Integer] maximum tool iterations when auto mode is enabled
@@ -27,13 +27,11 @@ module AiToolkit
       system_prompt = builder.system_prompt
       tools = builder.tools
 
-      results = []
-
       data = @provider.call(messages: messages, system_prompt: system_prompt, tools: tools, max_tokens: max_tokens)
       response = Response.new(data)
 
-      response.messages.each do |msg|
-        results << Response::MessageResult.new(role: msg[:role], content: msg[:content])
+      results = response.messages.map do |msg|
+        Response::MessageResult.new(role: msg[:role], content: msg[:content])
       end
 
       if auto
@@ -94,8 +92,9 @@ module AiToolkit
         end
       end
 
-      Response.new({ stop_reason: response.stop_reason, messages: response.messages, tool_uses: response.tool_uses }, results: results)
+      Response.new({ stop_reason: response.stop_reason, messages: response.messages, tool_uses: response.tool_uses },
+                   results: results)
     end
-    # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+    # rubocop:enable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   end
 end
