@@ -55,10 +55,7 @@ module AiToolkit
               ]
             }
 
-            next unless tool.respond_to?(:call)
-
             tool_message = tool.call(tu[:input])
-
             messages << {
               role: "user",
               content: [
@@ -77,6 +74,7 @@ module AiToolkit
             tools: tools,
             max_tokens: max_tokens
           )
+
           response = Response.new(data)
         end
       end
