@@ -28,13 +28,18 @@ end
 ```
 
 You can also override the maximum number of tokens sent to the provider and the
-iteration limit used when `auto` is enabled:
+iteration limit used when `auto` is enabled. A specific tool can be forced by
+passing a `tool_choice` hash:
 
 ```ruby
-client.request(auto: true, max_tokens: 2048, max_iterations: 10) do |c|
+client.request(auto: true, max_tokens: 2048, max_iterations: 10,
+               tool_choice: { type: 'tool', name: 'example_tool' }) do |c|
   c.message :user, 'Hello'
 end
 ```
+
+When using `auto`, a tool may terminate further LLM calls by raising
+`AiToolkit::StopToolLoop` from `#perform`.
 
 See `lib/ai_toolkit/providers/claude.rb` and `lib/ai_toolkit/providers/bedrock.rb` for the provider implementations.
 
