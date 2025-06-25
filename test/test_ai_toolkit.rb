@@ -147,6 +147,20 @@ class TestAiToolkit < Minitest::Test
     assert_equal({ type: "tool", name: "echo" }, provider.last_args[:tool_choice])
   end
 
+  # @return [void]
+  def test_passes_generation_options
+    provider = CaptureProvider.new({ stop_reason: "end_turn", messages: [] })
+    client = AiToolkit::Client.new(provider)
+
+    client.request(temperature: 0.5, top_k: 3, top_p: 0.8) do |c|
+      c.message :user, "hi"
+    end
+
+    assert_equal 0.5, provider.last_args[:temperature]
+    assert_equal 3, provider.last_args[:top_k]
+    assert_equal 0.8, provider.last_args[:top_p]
+  end
+
   class StopTool < AiToolkit::Tool
     input_schema({ type: "object" })
 
