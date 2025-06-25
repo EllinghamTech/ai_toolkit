@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'result_item'
+require_relative "result_item"
 
 module AiToolkit
   # Represents a tool response sent back to the LLM.
@@ -10,6 +10,7 @@ module AiToolkit
     # @param tool_use_id [String]
     # @param content [String]
     def initialize(tool_use_id:, content:)
+      super()
       @tool_use_id = tool_use_id
       @content = content
     end
