@@ -2,6 +2,24 @@
 
 AiToolkit provides a simple Ruby DSL for interacting with Anthropic's Claude models. It can talk directly to the Claude HTTP API or via AWS Bedrock.
 
+Add this line to your application's Gemfile:
+
+```ruby
+gem 'ai_toolkit'
+```
+
+And then execute:
+
+```bash
+bundle install
+```
+
+Or install it yourself as:
+
+```bash
+gem install ai_toolkit
+```
+
 ```ruby
 client = AiToolkit::Client.new(provider)
 response = client.request do |c|
@@ -11,8 +29,7 @@ response = client.request do |c|
 end
 ```
 
-For Claude built-in server side tools, just provide the tool name and any
-configuration options:
+For Claude built-in server side tools, just provide the tool name and any configuration options:
 
 ```ruby
 client.request do |c|
@@ -36,9 +53,7 @@ response = client.request(auto: true) do |c|
 end
 ```
 
-You can also override the maximum number of tokens sent to the provider and the
-iteration limit used when `auto` is enabled. A specific tool can be forced by
-passing a `tool_choice` hash:
+You can also override the maximum number of tokens sent to the provider and the iteration limit used when `auto` is enabled. A specific tool can be forced by passing a `tool_choice` hash:
 
 ```ruby
 client.request(auto: true, max_tokens: 2048, max_iterations: 10,
@@ -47,8 +62,7 @@ client.request(auto: true, max_tokens: 2048, max_iterations: 10,
 end
 ```
 
-Additional generation options like `temperature`, `top_k`, and `top_p` can also
-be specified and are passed directly through to the provider:
+Additional generation options like `temperature`, `top_k`, and `top_p` can also be specified and are passed directly through to the provider:
 
 ```ruby
 client.request(temperature: 0.2, top_k: 5, top_p: 0.9) do |c|
@@ -59,7 +73,7 @@ end
 When using `auto`, a tool may terminate further LLM calls by raising
 `AiToolkit::StopToolLoop` from `#perform`.
 
-See `lib/ai_toolkit/providers/claude.rb` and `lib/ai_toolkit/providers/bedrock.rb` for the provider implementations.
+See `lib/ai_toolkit/providers/claude.rb` and `lib/ai_toolkit/providers/bedrock.rb` for the provider implementations. A simple fake provider for testing is available in `lib/ai_toolkit/providers/fake.rb`.
 
 To use the Bedrock provider you need the [`aws-sdk-bedrockruntime`](https://github.com/aws/aws-sdk-ruby) gem. This gem is not included in `ai_toolkit`'s runtime dependencies, so install it separately when required:
 
@@ -67,8 +81,7 @@ To use the Bedrock provider you need the [`aws-sdk-bedrockruntime`](https://gith
 gem install aws-sdk-bedrockruntime
 ```
 
-When building the Docker image for testing with `docker-compose`, the gem is
-installed automatically via Bundler's `docker` group:
+When building the Docker image for testing with `docker-compose`, the gem is installed automatically via Bundler's `docker` group:
 
 ```bash
 docker-compose build
