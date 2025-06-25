@@ -2,6 +2,7 @@
 
 require "test_helper"
 
+# rubocop:disable Metrics/ClassLength
 class TestAiToolkit < Minitest::Test
   class EchoTool < AiToolkit::Tool
     input_schema(
@@ -215,4 +216,34 @@ class TestAiToolkit < Minitest::Test
     assert_instance_of AiToolkit::ToolResponse, resp.results[1]
   end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+
+  # Ensure pause_turn responses trigger another provider call
+  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # @return [void]
+  def test_pause_turn_continues_loop
+    provider = AiToolkit::Providers::Fake.new([
+                                                { stop_reason: "pause_turn",
+                                                  messages: [{ role: "assistant", content: "one" }] },
+                                                { stop_reason: "pause_turn",
+                                                  messages: [{ role: "assistant", content: "two" }] },
+                                                { stop_reason: "end_turn",
+                                                  messages: [{ role: "assistant", content: "done" }] }
+                                              ])
+    client = AiToolkit::Client.new(provider)
+
+    resp = client.request(auto: true) do |c|
+      c.message :user, "hi"
+    end
+
+    assert_equal "end_turn", resp.stop_reason
+    assert_equal "done", resp.messages.first[:content]
+    assert_equal 3, resp.results.length
+    expected = %w[one two done]
+    resp.results.each_with_index do |r, i|
+      assert_instance_of AiToolkit::MessageResult, r
+      assert_equal expected[i], r.content
+    end
+  end
+  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 end
+# rubocop:enable Metrics/ClassLength
