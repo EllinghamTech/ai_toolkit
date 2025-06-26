@@ -9,6 +9,7 @@ require_relative "ai_toolkit/tool_request"
 require_relative "ai_toolkit/tool_response"
 require_relative "ai_toolkit/message_result"
 require_relative "ai_toolkit/tool"
+require_relative "ai_toolkit/providers"
 
 module AiToolkit
   class Error < StandardError; end
