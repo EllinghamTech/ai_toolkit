@@ -1,3 +1,7 @@
+## [0.1.1] - 2025-06-26
+### Fixed
+- Providers are now exposed via `AiToolkit::Providers`.
+
 ## [0.1.0] - 2025-06-22
 ### Added
 - Simple Ruby DSL for building Claude requests with `system_prompt`, `message`, and `tool` calls.
