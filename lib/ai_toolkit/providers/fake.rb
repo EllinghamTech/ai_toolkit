@@ -4,10 +4,14 @@ module AiToolkit
   module Providers
     # Simple provider used in tests that returns predefined responses
     class Fake
+      attr_reader :model
+
       # @param responses [Array<Hash>]
-      def initialize(responses)
+      # @param model [String]
+      def initialize(responses, model: "fake")
         @responses = responses
         @index = 0
+        @model = model
       end
 
       # Return the next response

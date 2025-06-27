@@ -93,3 +93,22 @@ Run the test suite with:
 ```
 rake test
 ```
+
+## Hooks
+
+`AiToolkit::Client` allows registering callbacks before and after each provider
+call:
+
+```ruby
+client.before_request do |req, model:, provider:|
+  # inspect or modify `req`
+end
+
+client.after_request do |req, res, model:, provider:|
+  # inspect request and response
+end
+```
+
+The before hook may modify the request hash. Errors raised by the before hook
+propagate and abort the LLM request. Errors raised in the after hook are
+swallowed but will stop any automatic tool loop.

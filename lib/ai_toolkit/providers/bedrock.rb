@@ -11,6 +11,8 @@ module AiToolkit
   module Providers
     # Provider for Anthropic models via AWS Bedrock
     class Bedrock
+      attr_reader :model_id
+
       # @param model_id [String]
       # @param client [Aws::BedrockRuntime::Client, nil]
       def initialize(model_id:, client: nil)
