@@ -54,7 +54,7 @@ module AiToolkit
     # @param temperature [Float, nil] randomness of generation
     # @param top_k [Integer, nil] candidates considered at each step
     # @param top_p [Float, nil] probability mass for nucleus sampling
-    # @return [Response]
+    # @return [Array<Response>]
     # rubocop:disable Metrics/ParameterLists
     def request(auto: false, max_tokens: 1024, max_iterations: 5, tool_choice: nil,
                 temperature: nil, top_k: nil, top_p: nil)
@@ -65,7 +65,7 @@ module AiToolkit
       system_prompt = builder.system_prompt
       tools = builder.tools
 
-      data, hook_err = perform_call(
+      response, hook_err = perform_call(
         messages: messages,
         system_prompt: system_prompt,
         tools: tools,
@@ -75,24 +75,15 @@ module AiToolkit
         top_k: top_k,
         top_p: top_p
       )
-      response = Response.new(data)
-
-      results = response.messages.map do |msg|
-        Results::MessageResult.new(role: msg[:role], content: msg[:content])
-      end
+      responses = [response]
 
       if auto && !hook_err
-        # Keep requesting and executing tools until the provider no longer
-        # returns tool requests (or pause tokens) or the iteration limit is hit.
         iterations = 0
-        final_stop_reason = nil
         while %w[tool_use pause_turn].include?(response.stop_reason) && iterations < max_iterations
           iterations += 1
           stop_loop = false
 
-          # rubocop:disable Metrics/BlockLength
           response.tool_uses.each do |tu|
-            # Look up the registered tool object and record the request.
             tool = builder.tool_objects[tu[:name]]
 
             messages << {
@@ -106,8 +97,6 @@ module AiToolkit
                 }
               ]
             }
-
-            results << Results::ToolRequest.new(id: tu[:id], name: tu[:name], input: tu[:input])
 
             begin
               tool_message = tool.call(tu[:input])
@@ -126,20 +115,18 @@ module AiToolkit
                 }
               ]
             }
-
-            results << Results::ToolResponse.new(tool_use_id: tu[:id], content: tool_message)
+            response.results << Results::ToolResponse.new(tool_use_id: tu[:id], content: tool_message)
 
             break if stop_loop
           end
-          # rubocop:enable Metrics/BlockLength
 
           if stop_loop
-            # A tool explicitly requested that we stop looping.
-            final_stop_reason = "tool_stop"
+            response = Response.new({ stop_reason: "tool_stop", messages: [], tool_uses: [] }, results: [])
+            responses << response
             break
           end
 
-          data, hook_err = perform_call(
+          response, hook_err = perform_call(
             messages: messages,
             system_prompt: system_prompt,
             tools: tools,
@@ -149,28 +136,11 @@ module AiToolkit
             top_k: top_k,
             top_p: top_p
           )
-
-          response = Response.new(data)
-
+          responses << response
           break if hook_err
-
-          response.messages.each do |msg|
-            results << Results::MessageResult.new(role: msg[:role], content: msg[:content])
-          end
         end
       end
-
-      unless response.tool_uses.empty? || final_stop_reason
-        # Auto mode might stop before all tool requests are handled. Capture
-        # any remaining requests so the caller sees the full conversation.
-        response.tool_uses.each do |tu|
-          results << Results::ToolRequest.new(id: tu[:id], name: tu[:name], input: tu[:input])
-        end
-      end
-
-      stop_reason = final_stop_reason || response.stop_reason
-      Response.new({ stop_reason: stop_reason, messages: response.messages, tool_uses: response.tool_uses },
-                   results: results)
+      responses
     end
     # rubocop:enable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Metrics/ParameterLists
 
@@ -178,7 +148,7 @@ module AiToolkit
 
     # Build request Hash, invoke hooks and provider
     # @param args [Hash] parameters for provider
-    # @return [Array(Hash, Boolean)] raw response and hook error flag
+    # @return [Array(Response, Boolean)] response object and hook error flag
     def perform_call(**args)
       @before_request&.call(args, model: model_name, provider: provider_name)
       data = @provider.call(**args)

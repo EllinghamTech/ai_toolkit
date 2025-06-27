@@ -47,12 +47,21 @@ class TestAiToolkit < Minitest::Test
     # Capture arguments and return the canned response.
     # @param args [Hash]
     #   arguments passed from the client
-    # @return [Hash]
+    # @return [AiToolkit::Response]
     def call(**args)
       @last_args = args
       resp = @responses[@call_count] || @responses.last
       @call_count += 1
-      resp
+      return resp if resp.is_a?(AiToolkit::Response)
+
+      results = []
+      (resp[:messages] || []).each do |m|
+        results << AiToolkit::Results::MessageResult.new(role: m[:role], content: m[:content])
+      end
+      (resp[:tool_uses] || []).each do |tu|
+        results << AiToolkit::Results::ToolRequest.new(id: tu[:id], name: tu[:name], input: tu[:input])
+      end
+      AiToolkit::Response.new(resp, results: results)
     end
   end
 
@@ -66,12 +75,13 @@ class TestAiToolkit < Minitest::Test
                                               ])
     client = AiToolkit::Client.new(provider)
 
-    resp = client.request do |c|
+    resps = client.request do |c|
       c.system_prompt "Hello"
       c.message :user, "hi"
       c.tool :echo, {}
     end
-
+    assert_equal 1, resps.length
+    resp = resps.first
     assert_equal "end_turn", resp.stop_reason
     assert_equal "hi", resp.messages.first[:content]
     assert_equal 1, resp.results.length
@@ -91,17 +101,18 @@ class TestAiToolkit < Minitest::Test
                                               ])
     client = AiToolkit::Client.new(provider)
 
-    resp = client.request(auto: true) do |c|
+    resps = client.request(auto: true) do |c|
       c.message :user, "start"
       c.tool EchoTool.new
     end
-
-    assert_equal "end_turn", resp.stop_reason
-    assert_equal "done", resp.messages.first[:content]
-    assert_equal 3, resp.results.length
-    assert_instance_of AiToolkit::Results::ToolRequest, resp.results[0]
-    assert_instance_of AiToolkit::Results::ToolResponse, resp.results[1]
-    assert_instance_of AiToolkit::Results::MessageResult, resp.results[2]
+    assert_equal 2, resps.length
+    assert_equal "end_turn", resps.last.stop_reason
+    assert_equal "done", resps.last.messages.first[:content]
+    assert_equal 2, resps.first.results.length
+    assert_instance_of AiToolkit::Results::ToolRequest, resps.first.results[0]
+    assert_instance_of AiToolkit::Results::ToolResponse, resps.first.results[1]
+    assert_equal 1, resps.last.results.length
+    assert_instance_of AiToolkit::Results::MessageResult, resps.last.results[0]
   end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
@@ -118,16 +129,17 @@ class TestAiToolkit < Minitest::Test
                                               ])
     client = AiToolkit::Client.new(provider)
 
-    resp = client.request(auto: true, max_iterations: 1) do |c|
+    resps = client.request(auto: true, max_iterations: 1) do |c|
       c.message :user, "start"
       c.tool EchoTool.new
     end
-
-    assert_equal "tool_use", resp.stop_reason
-    assert_equal 3, resp.results.length
-    assert_instance_of AiToolkit::Results::ToolRequest, resp.results[0]
-    assert_instance_of AiToolkit::Results::ToolResponse, resp.results[1]
-    assert_instance_of AiToolkit::Results::ToolRequest, resp.results[2]
+    assert_equal 2, resps.length
+    assert_equal "tool_use", resps.last.stop_reason
+    assert_equal 2, resps.first.results.length
+    assert_instance_of AiToolkit::Results::ToolRequest, resps.first.results[0]
+    assert_instance_of AiToolkit::Results::ToolResponse, resps.first.results[1]
+    assert_equal 1, resps.last.results.length
+    assert_instance_of AiToolkit::Results::ToolRequest, resps.last.results[0]
   end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
@@ -218,12 +230,13 @@ class TestAiToolkit < Minitest::Test
       raise "boom"
     end
 
-    resp = client.request(auto: true) do |c|
+    resps = client.request(auto: true) do |c|
       c.tool EchoTool.new
       c.message :user, "go"
     end
-
     assert_equal 1, provider.call_count
+    assert_equal 1, resps.length
+    resp = resps.first
     assert_equal "tool_use", resp.stop_reason
     assert_equal 1, resp.results.length
     assert_instance_of AiToolkit::Results::ToolRequest, resp.results.first
@@ -259,15 +272,15 @@ class TestAiToolkit < Minitest::Test
                                               ])
     client = AiToolkit::Client.new(provider)
 
-    resp = client.request(auto: true) do |c|
+    resps = client.request(auto: true) do |c|
       c.message :user, "hi"
       c.tool StopTool.new
     end
-
-    assert_equal "tool_stop", resp.stop_reason
-    assert_equal 2, resp.results.length
-    assert_instance_of AiToolkit::Results::ToolRequest, resp.results[0]
-    assert_instance_of AiToolkit::Results::ToolResponse, resp.results[1]
+    assert_equal 2, resps.length
+    assert_equal "tool_stop", resps.last.stop_reason
+    assert_equal 2, resps.first.results.length
+    assert_instance_of AiToolkit::Results::ToolRequest, resps.first.results[0]
+    assert_instance_of AiToolkit::Results::ToolResponse, resps.first.results[1]
   end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
@@ -285,17 +298,16 @@ class TestAiToolkit < Minitest::Test
                                               ])
     client = AiToolkit::Client.new(provider)
 
-    resp = client.request(auto: true) do |c|
+    resps = client.request(auto: true) do |c|
       c.message :user, "hi"
     end
-
-    assert_equal "end_turn", resp.stop_reason
-    assert_equal "done", resp.messages.first[:content]
-    assert_equal 3, resp.results.length
+    assert_equal 3, resps.length
+    assert_equal "end_turn", resps.last.stop_reason
+    assert_equal "done", resps.last.messages.first[:content]
     expected = %w[one two done]
-    resp.results.each_with_index do |r, i|
-      assert_instance_of AiToolkit::Results::MessageResult, r
-      assert_equal expected[i], r.content
+    resps.each_with_index do |r, i|
+      assert_instance_of AiToolkit::Results::MessageResult, r.results.first
+      assert_equal expected[i], r.results.first.content
     end
   end
 
@@ -317,10 +329,11 @@ class TestAiToolkit < Minitest::Test
                                               ])
     client = AiToolkit::Client.new(provider)
 
-    resp = client.request do |c|
+    resps = client.request do |c|
       c.message :user, "hi"
     end
-
+    assert_equal 1, resps.length
+    resp = resps.first
     assert_equal 2, resp.results.length
     assert_equal({ type: "server_tool_use", id: "1", name: "web_search", input: { query: "ruby" } },
                  resp.results[0].content)

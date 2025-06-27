@@ -1,12 +1,16 @@
 # frozen_string_literal: true
 
+require_relative "../response"
+require_relative "../results/message_result"
+require_relative "../results/tool_request"
+
 module AiToolkit
   module Providers
     # Simple provider used in tests that returns predefined responses
     class Fake
       attr_reader :model
 
-      # @param responses [Array<Hash>]
+      # @param responses [Array<Hash, AiToolkit::Response>]
       # @param model [String]
       def initialize(responses, model: "fake")
         @responses = responses
@@ -15,13 +19,24 @@ module AiToolkit
       end
 
       # Return the next response
-      # @return [Hash]
+      # @return [AiToolkit::Response]
       # rubocop:disable Lint/UnusedMethodArgument, Metrics/ParameterLists
       def call(messages: nil, system_prompt: nil, tools: nil, max_tokens: nil, tool_choice: nil,
                temperature: nil, top_k: nil, top_p: nil)
         resp = @responses[@index]
         @index += 1 if @index < @responses.length - 1
-        resp
+
+        return resp if resp.is_a?(AiToolkit::Response)
+
+        results = []
+        (resp[:messages] || []).each do |msg|
+          results << Results::MessageResult.new(role: msg[:role], content: msg[:content])
+        end
+        (resp[:tool_uses] || []).each do |tu|
+          results << Results::ToolRequest.new(id: tu[:id], name: tu[:name], input: tu[:input])
+        end
+
+        Response.new(resp, results: results)
       end
       # rubocop:enable Lint/UnusedMethodArgument, Metrics/ParameterLists
     end

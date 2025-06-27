@@ -44,14 +44,14 @@ class TestRealProviders < Minitest::Test
 
     tool = EchoTool.new
 
-    resp = client.request(auto: true) do |c|
+    resps = client.request(auto: true) do |c|
       c.system_prompt "You can use the 'echo' tool to repeat any text back to the user."
       c.message :user, "Hello"
       c.message :assistant, "Yes, how can I help you?"
       c.tool tool
       c.message :user, "Use the echo tool to repeat the word 'testing'."
     end
-
+    resp = resps.last
     refute_empty resp.messages
 
     # To prove to the testing user
@@ -73,14 +73,14 @@ class TestRealProviders < Minitest::Test
 
     tool = EchoTool.new
 
-    resp = client.request(auto: true) do |c|
+    resps = client.request(auto: true) do |c|
       c.system_prompt "You can use the 'echo' tool to repeat any text back to the user."
       c.message :user, "Hello"
       c.message :assistant, "Yes, how can I help you?"
       c.tool tool
       c.message :user, "Use the echo tool to repeat the word 'testing'."
     end
-
+    resp = resps.last
     refute_empty resp.messages
 
     # To prove to the testing user
@@ -100,12 +100,12 @@ class TestRealProviders < Minitest::Test
     )
     client = AiToolkit::Client.new(provider)
 
-    resp = client.request do |c|
+    resps = client.request do |c|
       c.system_prompt "You can use the web_search tool to find information."
       c.tool :web_search, nil, type: "web_search_20250305"
       c.message :user, "Search the web for Ruby programming language."
     end
-
+    resp = resps.first
     refute_empty resp.messages
 
     # To prove to the testing user

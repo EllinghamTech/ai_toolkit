@@ -5,7 +5,12 @@ begin
 rescue LoadError
   # aws-sdk-bedrockruntime is optional
 end
+
 require "json"
+
+require_relative "../response"
+require_relative "../results/message_result"
+require_relative "../results/tool_request"
 
 module AiToolkit
   module Providers
@@ -59,7 +64,7 @@ module AiToolkit
         )
 
         raw = JSON.parse(resp.body.string, symbolize_names: true)
-        format_response(raw)
+        build_response(format_response(raw))
       end
       # rubocop:enable Metrics/MethodLength, Metrics/ParameterLists
 
@@ -98,6 +103,20 @@ module AiToolkit
         out
       end
       # rubocop:enable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+
+      # Convert formatted data to a Response object
+      # @param data [Hash]
+      # @return [AiToolkit::Response]
+      def build_response(data)
+        results = []
+        (data[:messages] || []).each do |msg|
+          results << Results::MessageResult.new(role: msg[:role], content: msg[:content])
+        end
+        (data[:tool_uses] || []).each do |tu|
+          results << Results::ToolRequest.new(id: tu[:id], name: tu[:name], input: tu[:input])
+        end
+        Response.new(data, results: results)
+      end
     end
   end
 end
