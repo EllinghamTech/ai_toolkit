@@ -1,3 +1,9 @@
+## [Unreleased]
+### Added
+- UnknownResult stores raw JSON for unrecognized message types.
+### Changed
+- Result classes moved to `AiToolkit::Results` namespace.
+
 ## [0.1.1] - 2025-06-26
 ### Fixed
 - Providers are now exposed via `AiToolkit::Providers`.
