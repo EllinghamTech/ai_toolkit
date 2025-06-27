@@ -31,12 +31,17 @@ class TestAiToolkit < Minitest::Test
   end
 
   class CaptureProvider
-    attr_reader :last_args
+    attr_reader :last_args, :model, :call_count
 
-    # @param response [Hash]
-    #   canned response to return
-    def initialize(response)
-      @response = response
+    # @param response [Hash, Array<Hash>]
+    #   canned response or list of responses to return
+    # @param model [String]
+    #   model identifier
+    # @return [void]
+    def initialize(response, model: "test-model")
+      @responses = response.is_a?(Array) ? response : [response]
+      @model = model
+      @call_count = 0
     end
 
     # Capture arguments and return the canned response.
@@ -45,7 +50,9 @@ class TestAiToolkit < Minitest::Test
     # @return [Hash]
     def call(**args)
       @last_args = args
-      @response
+      resp = @responses[@call_count] || @responses.last
+      @call_count += 1
+      resp
     end
   end
 
@@ -175,6 +182,53 @@ class TestAiToolkit < Minitest::Test
     assert_equal 3, provider.last_args[:top_k]
     assert_equal 0.8, provider.last_args[:top_p]
   end
+
+  # Ensure before hooks can modify requests
+  # @return [void]
+  # rubocop:disable Metrics/MethodLength
+  def test_before_hook_modifies_request
+    provider = CaptureProvider.new({ stop_reason: "end_turn", messages: [] }, model: "m1")
+    client = AiToolkit::Client.new(provider)
+    captured = nil
+    client.before_request do |req, model:, provider:|
+      captured = [req[:max_tokens], model, provider]
+      req[:max_tokens] = 20
+    end
+
+    client.request(max_tokens: 5) do |c|
+      c.message :user, "hi"
+    end
+
+    assert_equal [5, "m1", "TestAiToolkit::CaptureProvider"], captured
+    assert_equal 20, provider.last_args[:max_tokens]
+  end
+  # rubocop:enable Metrics/MethodLength
+
+  # Ensure after hook errors stop the auto loop
+  # @return [void]
+  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  def test_after_hook_error_stops_loop
+    responses = [
+      { stop_reason: "tool_use", tool_uses: [{ name: "echo", input: "hi" }] },
+      { stop_reason: "end_turn", messages: [{ role: "assistant", content: "done" }] }
+    ]
+    provider = CaptureProvider.new(responses)
+    client = AiToolkit::Client.new(provider)
+    client.after_request do |_req, _res, **_|
+      raise "boom"
+    end
+
+    resp = client.request(auto: true) do |c|
+      c.tool EchoTool.new
+      c.message :user, "go"
+    end
+
+    assert_equal 1, provider.call_count
+    assert_equal "tool_use", resp.stop_reason
+    assert_equal 1, resp.results.length
+    assert_instance_of AiToolkit::ToolRequest, resp.results.first
+  end
+  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   class StopTool < AiToolkit::Tool
     input_schema({ type: "object" })

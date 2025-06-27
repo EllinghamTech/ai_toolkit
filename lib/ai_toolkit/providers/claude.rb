@@ -7,6 +7,8 @@ module AiToolkit
   module Providers
     # Provider for the Anthropic Claude API
     class Claude
+      attr_reader :model
+
       API_URL = "https://api.anthropic.com/v1/messages"
 
       # @param api_key [String]

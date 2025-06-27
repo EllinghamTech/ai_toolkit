@@ -5,11 +5,43 @@ require_relative "response"
 
 module AiToolkit
   # Client for performing AI requests through a provider
+  # rubocop:disable Metrics/ClassLength
   class Client
     # @param provider [#call]
     #   object that responds to `call`
     def initialize(provider)
       @provider = provider
+    end
+
+    # Register or retrieve a before request hook
+    #
+    # The block receives the request Hash as its first argument and may mutate
+    # it before it is sent to the provider. The model and provider names are
+    # yielded via keyword arguments.
+    #
+    # @yieldparam req [Hash] request parameters
+    # @yieldparam model [String, nil] model name
+    # @yieldparam provider [String] provider name
+    # @return [Proc, nil]
+    def before_request(&block)
+      @before_request = block if block_given?
+      @before_request
+    end
+
+    # Register or retrieve an after request hook
+    #
+    # The block receives the request Hash and raw response data. Errors raised
+    # inside the block are caught and will stop the auto loop but still return
+    # the current response.
+    #
+    # @yieldparam req [Hash] request parameters
+    # @yieldparam res [Hash] raw response
+    # @yieldparam model [String, nil] model name
+    # @yieldparam provider [String] provider name
+    # @return [Proc, nil]
+    def after_request(&block)
+      @after_request = block if block_given?
+      @after_request
     end
 
     # Perform a request with optional automatic tool usage
@@ -33,7 +65,7 @@ module AiToolkit
       system_prompt = builder.system_prompt
       tools = builder.tools
 
-      data = @provider.call(
+      data, hook_err = perform_call(
         messages: messages,
         system_prompt: system_prompt,
         tools: tools,
@@ -49,7 +81,7 @@ module AiToolkit
         MessageResult.new(role: msg[:role], content: msg[:content])
       end
 
-      if auto
+      if auto && !hook_err
         # Keep requesting and executing tools until the provider no longer
         # returns tool requests (or pause tokens) or the iteration limit is hit.
         iterations = 0
@@ -107,7 +139,7 @@ module AiToolkit
             break
           end
 
-          data = @provider.call(
+          data, hook_err = perform_call(
             messages: messages,
             system_prompt: system_prompt,
             tools: tools,
@@ -119,6 +151,8 @@ module AiToolkit
           )
 
           response = Response.new(data)
+
+          break if hook_err
 
           response.messages.each do |msg|
             results << MessageResult.new(role: msg[:role], content: msg[:content])
@@ -139,5 +173,40 @@ module AiToolkit
                    results: results)
     end
     # rubocop:enable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Metrics/ParameterLists
+
+    private
+
+    # Build request Hash, invoke hooks and provider
+    # @param args [Hash] parameters for provider
+    # @return [Array(Hash, Boolean)] raw response and hook error flag
+    def perform_call(**args)
+      @before_request&.call(args, model: model_name, provider: provider_name)
+      data = @provider.call(**args)
+      hook_err = false
+      begin
+        @after_request&.call(args, data, model: model_name, provider: provider_name)
+      rescue StandardError
+        hook_err = true
+      end
+      [data, hook_err]
+    end
+
+    # @return [String]
+    def provider_name
+      @provider.class.name
+    end
+
+    # Attempt to fetch a model identifier from the provider
+    # @return [String, nil]
+    def model_name
+      if @provider.respond_to?(:model)
+        @provider.model
+      elsif @provider.respond_to?(:model_id)
+        @provider.model_id
+      elsif @provider.respond_to?(:model_name)
+        @provider.model_name
+      end
+    end
   end
 end
+# rubocop:enable Metrics/ClassLength
