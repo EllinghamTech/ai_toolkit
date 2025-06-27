@@ -54,9 +54,8 @@ class TestAiToolkit < Minitest::Test
       @call_count += 1
       return resp if resp.is_a?(AiToolkit::Response)
 
-      results = []
-      (resp[:messages] || []).each do |m|
-        results << AiToolkit::Results::MessageResult.new(role: m[:role], content: m[:content])
+      results = (resp[:messages] || []).map do |m|
+        AiToolkit::Results::MessageResult.new(role: m[:role], content: m[:content])
       end
       (resp[:tool_uses] || []).each do |tu|
         results << AiToolkit::Results::ToolRequest.new(id: tu[:id], name: tu[:name], input: tu[:input])
@@ -86,6 +85,7 @@ class TestAiToolkit < Minitest::Test
     assert_equal "hi", resp.messages.first[:content]
     assert_equal 1, resp.results.length
     assert_instance_of AiToolkit::Results::MessageResult, resp.results.first
+    assert resp.execution_time.is_a?(Numeric)
   end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 

@@ -44,6 +44,7 @@ module AiToolkit
       # rubocop:disable Metrics/ParameterLists
       def call(messages:, system_prompt:, tools: [], max_tokens: 1024,
                tool_choice: nil, temperature: nil, top_k: nil, top_p: nil)
+        start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         body = {
           anthropic_version: "bedrock-2023-05-31",
           messages: messages,
@@ -64,7 +65,8 @@ module AiToolkit
         )
 
         raw = JSON.parse(resp.body.string, symbolize_names: true)
-        build_response(format_response(raw))
+        exec_time = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
+        build_response(format_response(raw), execution_time: exec_time)
       end
       # rubocop:enable Metrics/MethodLength, Metrics/ParameterLists
 
@@ -107,15 +109,15 @@ module AiToolkit
       # Convert formatted data to a Response object
       # @param data [Hash]
       # @return [AiToolkit::Response]
-      def build_response(data)
-        results = []
-        (data[:messages] || []).each do |msg|
-          results << Results::MessageResult.new(role: msg[:role], content: msg[:content])
+      # @param [Object] execution_time
+      def build_response(data, execution_time: nil)
+        results = (data[:messages] || []).map do |msg|
+          Results::MessageResult.new(role: msg[:role], content: msg[:content])
         end
         (data[:tool_uses] || []).each do |tu|
           results << Results::ToolRequest.new(id: tu[:id], name: tu[:name], input: tu[:input])
         end
-        Response.new(data, results: results)
+        Response.new(data, results: results, execution_time: execution_time)
       end
     end
   end

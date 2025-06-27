@@ -41,7 +41,8 @@ The response object exposes the stop reason and a chronologically ordered list o
 results via `#results`. Each element of this array is one of three objects:
 `AiToolkit::MessageResult` for LLM messages, `AiToolkit::ToolRequest`
 for tool calls requested by the LLM, and `AiToolkit::ToolResponse` for
-the data returned back to the model from executed tools.
+the data returned back to the model from executed tools. Each response also
+provides `#execution_time`, the number of seconds spent performing the LLM call.
 
 Enabling automatic tool looping is as easy as:
 

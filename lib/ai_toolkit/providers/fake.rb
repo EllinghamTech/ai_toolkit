@@ -23,20 +23,24 @@ module AiToolkit
       # rubocop:disable Lint/UnusedMethodArgument, Metrics/ParameterLists
       def call(messages: nil, system_prompt: nil, tools: nil, max_tokens: nil, tool_choice: nil,
                temperature: nil, top_k: nil, top_p: nil)
+        start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         resp = @responses[@index]
         @index += 1 if @index < @responses.length - 1
 
-        return resp if resp.is_a?(AiToolkit::Response)
+        if resp.is_a?(AiToolkit::Response)
+          resp.execution_time ||= Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
+          return resp
+        end
 
-        results = []
-        (resp[:messages] || []).each do |msg|
-          results << Results::MessageResult.new(role: msg[:role], content: msg[:content])
+        results = (resp[:messages] || []).map do |msg|
+          Results::MessageResult.new(role: msg[:role], content: msg[:content])
         end
         (resp[:tool_uses] || []).each do |tu|
           results << Results::ToolRequest.new(id: tu[:id], name: tu[:name], input: tu[:input])
         end
 
-        Response.new(resp, results: results)
+        exec_time = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
+        Response.new(resp, results: results, execution_time: exec_time)
       end
       # rubocop:enable Lint/UnusedMethodArgument, Metrics/ParameterLists
     end
