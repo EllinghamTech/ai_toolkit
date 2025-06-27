@@ -66,7 +66,12 @@ module AiToolkit
 
         raw = JSON.parse(resp.body.string, symbolize_names: true)
         exec_time = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
-        build_response(format_response(raw), execution_time: exec_time)
+
+        build_response(
+          format_response(raw),
+          execution_time: exec_time,
+          usage: raw[:usage]
+        )
       end
       # rubocop:enable Metrics/MethodLength, Metrics/ParameterLists
 
@@ -110,14 +115,21 @@ module AiToolkit
       # @param data [Hash]
       # @return [AiToolkit::Response]
       # @param [Object] execution_time
-      def build_response(data, execution_time: nil)
+      # @param [Object] usage
+      def build_response(data, execution_time: nil, usage: nil)
         results = (data[:messages] || []).map do |msg|
           Results::MessageResult.new(role: msg[:role], content: msg[:content])
         end
         (data[:tool_uses] || []).each do |tu|
           results << Results::ToolRequest.new(id: tu[:id], name: tu[:name], input: tu[:input])
         end
-        Response.new(data, results: results, execution_time: execution_time)
+        Response.new(
+          data,
+          results: results,
+          execution_time: execution_time,
+          input_tokens: usage&.dig(:input_tokens),
+          output_tokens: usage&.dig(:output_tokens)
+        )
       end
     end
   end

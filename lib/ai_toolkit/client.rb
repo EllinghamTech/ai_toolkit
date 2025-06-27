@@ -2,6 +2,7 @@
 
 require_relative "request_builder"
 require_relative "response"
+require_relative "response_collection"
 
 module AiToolkit
   # Client for performing AI requests through a provider
@@ -54,7 +55,7 @@ module AiToolkit
     # @param temperature [Float, nil] randomness of generation
     # @param top_k [Integer, nil] candidates considered at each step
     # @param top_p [Float, nil] probability mass for nucleus sampling
-    # @return [Array<Response>]
+    # @return [ResponseCollection]
     # rubocop:disable Metrics/ParameterLists
     def request(auto: false, max_tokens: 1024, max_iterations: 5, tool_choice: nil,
                 temperature: nil, top_k: nil, top_p: nil)
@@ -140,7 +141,8 @@ module AiToolkit
           break if hook_err
         end
       end
-      responses
+
+      ResponseCollection.new(responses)
     end
     # rubocop:enable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Metrics/ParameterLists
 

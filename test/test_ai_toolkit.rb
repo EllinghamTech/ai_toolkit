@@ -60,7 +60,14 @@ class TestAiToolkit < Minitest::Test
       (resp[:tool_uses] || []).each do |tu|
         results << AiToolkit::Results::ToolRequest.new(id: tu[:id], name: tu[:name], input: tu[:input])
       end
-      AiToolkit::Response.new(resp, results: results)
+
+      AiToolkit::Response.new(
+        resp,
+        results: results,
+        execution_time: 0.001,
+        input_tokens: resp[:input_tokens],
+        output_tokens: resp[:output_tokens]
+      )
     end
   end
 
@@ -86,6 +93,7 @@ class TestAiToolkit < Minitest::Test
     assert_equal 1, resp.results.length
     assert_instance_of AiToolkit::Results::MessageResult, resp.results.first
     assert resp.execution_time.is_a?(Numeric)
+    assert resps.total_execution_time.positive?
   end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
@@ -113,6 +121,7 @@ class TestAiToolkit < Minitest::Test
     assert_instance_of AiToolkit::Results::ToolResponse, resps.first.results[1]
     assert_equal 1, resps.last.results.length
     assert_instance_of AiToolkit::Results::MessageResult, resps.last.results[0]
+    assert resps.total_execution_time.positive?
   end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
@@ -140,6 +149,7 @@ class TestAiToolkit < Minitest::Test
     assert_instance_of AiToolkit::Results::ToolResponse, resps.first.results[1]
     assert_equal 1, resps.last.results.length
     assert_instance_of AiToolkit::Results::ToolRequest, resps.last.results[0]
+    assert resps.total_execution_time.positive?
   end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
@@ -240,6 +250,7 @@ class TestAiToolkit < Minitest::Test
     assert_equal "tool_use", resp.stop_reason
     assert_equal 1, resp.results.length
     assert_instance_of AiToolkit::Results::ToolRequest, resp.results.first
+    assert resps.total_execution_time.positive?
   end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
@@ -281,6 +292,7 @@ class TestAiToolkit < Minitest::Test
     assert_equal 2, resps.first.results.length
     assert_instance_of AiToolkit::Results::ToolRequest, resps.first.results[0]
     assert_instance_of AiToolkit::Results::ToolResponse, resps.first.results[1]
+    assert resps.total_execution_time.positive?
   end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
@@ -309,6 +321,7 @@ class TestAiToolkit < Minitest::Test
       assert_instance_of AiToolkit::Results::MessageResult, r.results.first
       assert_equal expected[i], r.results.first.content
     end
+    assert resps.total_execution_time.positive?
   end
 
   # Ensure additional message types are preserved
@@ -338,6 +351,7 @@ class TestAiToolkit < Minitest::Test
     assert_equal({ type: "server_tool_use", id: "1", name: "web_search", input: { query: "ruby" } },
                  resp.results[0].content)
     assert_equal({ type: "web_search_tool_result", tool_use_id: "1", content: "result" }, resp.results[1].content)
+    assert resps.total_execution_time.positive?
   end
   # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 end

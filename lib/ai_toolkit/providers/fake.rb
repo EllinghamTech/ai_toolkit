@@ -40,7 +40,14 @@ module AiToolkit
         end
 
         exec_time = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
-        Response.new(resp, results: results, execution_time: exec_time)
+
+        Response.new(
+          resp,
+          results: results,
+          execution_time: exec_time,
+          input_tokens: resp[:input_tokens],
+          output_tokens: resp[:output_tokens]
+        )
       end
       # rubocop:enable Lint/UnusedMethodArgument, Metrics/ParameterLists
     end

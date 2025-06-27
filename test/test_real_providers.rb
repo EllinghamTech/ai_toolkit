@@ -53,6 +53,10 @@ class TestRealProviders < Minitest::Test
     end
     resp = resps.last
     refute_empty resp.messages
+    assert resps.total_input_tokens.to_i.positive?
+    assert resps.total_output_tokens.to_i.positive?
+    assert resps.total_execution_time.positive?
+    refute_empty resps.all_results
 
     # To prove to the testing user
     puts resp.messages.to_json
@@ -82,6 +86,10 @@ class TestRealProviders < Minitest::Test
     end
     resp = resps.last
     refute_empty resp.messages
+    assert resps.total_input_tokens.to_i.positive?
+    assert resps.total_output_tokens.to_i.positive?
+    assert resps.total_execution_time.positive?
+    refute_empty resps.all_results
 
     # To prove to the testing user
     puts resp.messages.to_json
@@ -107,6 +115,10 @@ class TestRealProviders < Minitest::Test
     end
     resp = resps.first
     refute_empty resp.messages
+    assert resps.total_input_tokens.to_i.positive?
+    assert resps.total_output_tokens.to_i.positive?
+    assert resps.total_execution_time.positive?
+    refute_empty resps.all_results
 
     # To prove to the testing user
     puts resp.messages.to_json
