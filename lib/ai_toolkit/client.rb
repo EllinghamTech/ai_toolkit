@@ -78,7 +78,7 @@ module AiToolkit
       response = Response.new(data)
 
       results = response.messages.map do |msg|
-        MessageResult.new(role: msg[:role], content: msg[:content])
+        Results::MessageResult.new(role: msg[:role], content: msg[:content])
       end
 
       if auto && !hook_err
@@ -107,7 +107,7 @@ module AiToolkit
               ]
             }
 
-            results << ToolRequest.new(id: tu[:id], name: tu[:name], input: tu[:input])
+            results << Results::ToolRequest.new(id: tu[:id], name: tu[:name], input: tu[:input])
 
             begin
               tool_message = tool.call(tu[:input])
@@ -127,7 +127,7 @@ module AiToolkit
               ]
             }
 
-            results << ToolResponse.new(tool_use_id: tu[:id], content: tool_message)
+            results << Results::ToolResponse.new(tool_use_id: tu[:id], content: tool_message)
 
             break if stop_loop
           end
@@ -155,7 +155,7 @@ module AiToolkit
           break if hook_err
 
           response.messages.each do |msg|
-            results << MessageResult.new(role: msg[:role], content: msg[:content])
+            results << Results::MessageResult.new(role: msg[:role], content: msg[:content])
           end
         end
       end
@@ -164,7 +164,7 @@ module AiToolkit
         # Auto mode might stop before all tool requests are handled. Capture
         # any remaining requests so the caller sees the full conversation.
         response.tool_uses.each do |tu|
-          results << ToolRequest.new(id: tu[:id], name: tu[:name], input: tu[:input])
+          results << Results::ToolRequest.new(id: tu[:id], name: tu[:name], input: tu[:input])
         end
       end
 

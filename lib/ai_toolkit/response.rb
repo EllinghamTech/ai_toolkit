@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative "result_item"
-require_relative "tool_request"
-require_relative "tool_response"
-require_relative "message_result"
+require_relative "results/result_item"
+require_relative "results/tool_request"
+require_relative "results/tool_response"
+require_relative "results/message_result"
 
 module AiToolkit
   # Structured response returned from the provider
@@ -12,7 +12,7 @@ module AiToolkit
 
     # @param data [Hash]
     #   raw response data
-    # @param results [Array<ResultItem>]
+    # @param results [Array<Results::ResultItem>]
     #   ordered list of results from all requests
     def initialize(data, results: [])
       @stop_reason = data[:stop_reason]
