@@ -71,7 +71,6 @@ class TestAiToolkit < Minitest::Test
     end
   end
 
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
   # Test simple request
   # @return [void]
   def test_request_returns_response
@@ -95,9 +94,8 @@ class TestAiToolkit < Minitest::Test
     assert resp.execution_time.is_a?(Numeric)
     assert resps.total_execution_time.positive?
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable Metrics/AbcSize
   # Test auto tool loop
   # @return [void]
   def test_auto_tool_loop
@@ -123,9 +121,9 @@ class TestAiToolkit < Minitest::Test
     assert_instance_of AiToolkit::Results::MessageResult, resps.last.results[0]
     assert resps.total_execution_time.positive?
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:enable Metrics/AbcSize
 
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable Metrics/AbcSize
   # @return [void]
   def test_max_iterations_limit
     provider = AiToolkit::Providers::Fake.new([
@@ -151,7 +149,7 @@ class TestAiToolkit < Minitest::Test
     assert_instance_of AiToolkit::Results::ToolRequest, resps.last.results[0]
     assert resps.total_execution_time.positive?
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:enable Metrics/AbcSize
 
   # @return [void]
   def test_passes_max_tokens
@@ -207,7 +205,6 @@ class TestAiToolkit < Minitest::Test
 
   # Ensure before hooks can modify requests
   # @return [void]
-  # rubocop:disable Metrics/MethodLength
   def test_before_hook_modifies_request
     provider = CaptureProvider.new({ stop_reason: "end_turn", messages: [] }, model: "m1")
     client = AiToolkit::Client.new(provider)
@@ -224,11 +221,9 @@ class TestAiToolkit < Minitest::Test
     assert_equal [5, "m1", "TestAiToolkit::CaptureProvider"], captured
     assert_equal 20, provider.last_args[:max_tokens]
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Ensure after hook errors stop the auto loop
   # @return [void]
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
   def test_after_hook_error_stops_loop
     responses = [
       { stop_reason: "tool_use", tool_uses: [{ name: "echo", input: "hi" }] },
@@ -252,7 +247,6 @@ class TestAiToolkit < Minitest::Test
     assert_instance_of AiToolkit::Results::ToolRequest, resp.results.first
     assert resps.total_execution_time.positive?
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   class StopTool < AiToolkit::Tool
     input_schema({ type: "object" })
@@ -275,7 +269,6 @@ class TestAiToolkit < Minitest::Test
   end
 
   # @return [void]
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
   def test_tool_can_end_loop
     provider = AiToolkit::Providers::Fake.new([
                                                 { stop_reason: "tool_use",
@@ -294,10 +287,8 @@ class TestAiToolkit < Minitest::Test
     assert_instance_of AiToolkit::Results::ToolResponse, resps.first.results[1]
     assert resps.total_execution_time.positive?
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
   # Ensure pause_turn responses trigger another provider call
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
   # @return [void]
   def test_pause_turn_continues_loop
     provider = AiToolkit::Providers::Fake.new([
@@ -353,6 +344,5 @@ class TestAiToolkit < Minitest::Test
     assert_equal({ type: "web_search_tool_result", tool_use_id: "1", content: "result" }, resp.results[1].content)
     assert resps.total_execution_time.positive?
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 end
 # rubocop:enable Metrics/ClassLength

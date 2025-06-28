@@ -25,7 +25,6 @@ module AiToolkit
         @model_id = model_id
       end
 
-      # rubocop:disable Metrics/MethodLength
       # Perform the request
       # @param messages [Array<Hash>]
       # @param system_prompt [String]
@@ -73,12 +72,12 @@ module AiToolkit
           usage: raw[:usage]
         )
       end
-      # rubocop:enable Metrics/MethodLength, Metrics/ParameterLists
+      # rubocop:enable Metrics/ParameterLists
 
       private
 
       # Convert the API response to the common format
-      # rubocop:disable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+      # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
       # @param data [Hash]
       # @return [Hash]
       def format_response(data)
@@ -109,7 +108,7 @@ module AiToolkit
         end
         out
       end
-      # rubocop:enable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+      # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 
       # Convert formatted data to a Response object
       # @param data [Hash]

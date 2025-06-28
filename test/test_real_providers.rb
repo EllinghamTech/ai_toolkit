@@ -31,7 +31,7 @@ class TestRealProviders < Minitest::Test
     end
   end
 
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable Metrics/AbcSize
   def test_claude_provider
     puts "Claude"
     skip "CLAUDE_API_KEY not set" unless ENV["CLAUDE_API_KEY"]
@@ -63,9 +63,9 @@ class TestRealProviders < Minitest::Test
     puts resp.to_json
   end
 
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:enable Metrics/AbcSize
 
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable Metrics/AbcSize
   def test_bedrock_provider
     puts "Bedrock"
     skip "BEDROCK_MODEL_ID not set" unless ENV["BEDROCK_MODEL_ID"]
@@ -95,9 +95,9 @@ class TestRealProviders < Minitest::Test
     puts resp.messages.to_json
     puts resp.to_json
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:enable Metrics/AbcSize
 
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable Metrics/AbcSize
   def test_claude_web_search
     puts "Claude web_search"
     skip "CLAUDE_API_KEY not set" unless ENV["CLAUDE_API_KEY"]
@@ -124,6 +124,6 @@ class TestRealProviders < Minitest::Test
     puts resp.messages.to_json
     puts resp.to_json
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:enable Metrics/AbcSize
 end
 # rubocop:enable YARD/RequireDocumentation
