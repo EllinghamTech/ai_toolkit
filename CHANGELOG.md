@@ -4,6 +4,7 @@
 - `AiToolkit::Client#request` now returns a `AiToolkit::ResponseCollection` object
 ### Changed
 - Result classes moved to `AiToolkit::Results` namespace.
+- Automatic tool loop is always enabled; `auto` option removed from `Client#request`.
 
 ## [0.1.1] - 2025-06-26
 ### Fixed

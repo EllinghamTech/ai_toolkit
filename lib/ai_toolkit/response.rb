@@ -8,8 +8,8 @@ require_relative "results/message_result"
 module AiToolkit
   # Structured response returned from the provider
   class Response
-    attr_reader :stop_reason, :messages, :tool_uses
-    attr_accessor :results, :execution_time, :input_tokens, :output_tokens
+    attr_reader :messages, :tool_uses
+    attr_accessor :results, :execution_time, :input_tokens, :output_tokens, :stop_reason
 
     # @param data [Hash]
     #   raw response data

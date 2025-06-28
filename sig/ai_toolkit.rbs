@@ -11,7 +11,7 @@ module AiToolkit
 
     def after_request: () { (Hash[Symbol | String, untyped], untyped, model: String?, provider: String) -> untyped } -> Proc?
 
-    def request: (auto?: bool, max_tokens?: Integer, max_iterations?: Integer, tool_choice?: Hash?, temperature?: Float?, top_k?: Integer?, top_p?: Float?) { (RequestBuilder) -> void } -> ResponseCollection
+    def request: (max_tokens?: Integer, max_iterations?: Integer, tool_choice?: Hash?, temperature?: Float?, top_k?: Integer?, top_p?: Float?) { (RequestBuilder) -> void } -> ResponseCollection
   end
 
   class RequestBuilder
@@ -29,7 +29,7 @@ module AiToolkit
   end
 
   class Response
-    attr_reader stop_reason: String?
+    attr_accessor stop_reason: String?
     attr_reader messages: Array[Hash[Symbol | String, untyped]]
     attr_reader tool_uses: Array[Hash[Symbol | String, untyped]]
     attr_accessor results: Array[Results::ResultItem]

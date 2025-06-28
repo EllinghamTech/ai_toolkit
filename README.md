@@ -44,20 +44,20 @@ for tool calls requested by the LLM, and `AiToolkit::ToolResponse` for
 the data returned back to the model from executed tools. Each response also
 provides `#execution_time`, the number of seconds spent performing the LLM call.
 
-Enabling automatic tool looping is as easy as:
+Requests automatically loop through tool calls. A basic request looks like:
 
 ```ruby
-response = client.request(auto: true) do |c|
+response = client.request do |c|
   c.system_prompt 'My Prompt'
   c.message :user, 'First message'
   c.tool MyToolObject
 end
 ```
 
-You can also override the maximum number of tokens sent to the provider and the iteration limit used when `auto` is enabled. A specific tool can be forced by passing a `tool_choice` hash:
+You can override the maximum number of tokens sent to the provider and the iteration limit for tool looping. A specific tool can be forced by passing a `tool_choice` hash:
 
 ```ruby
-client.request(auto: true, max_tokens: 2048, max_iterations: 10,
+client.request(max_tokens: 2048, max_iterations: 10,
                tool_choice: { type: 'tool', name: 'example_tool' }) do |c|
   c.message :user, 'Hello'
 end
@@ -71,7 +71,7 @@ client.request(temperature: 0.2, top_k: 5, top_p: 0.9) do |c|
 end
 ```
 
-When using `auto`, a tool may terminate further LLM calls by raising
+A tool may terminate further LLM calls by raising
 `AiToolkit::StopToolLoop` from `#perform`.
 
 See `lib/ai_toolkit/providers/claude.rb` and `lib/ai_toolkit/providers/bedrock.rb` for the provider implementations. A simple fake provider for testing is available in `lib/ai_toolkit/providers/fake.rb`.

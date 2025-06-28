@@ -44,7 +44,7 @@ class TestRealProviders < Minitest::Test
 
     tool = EchoTool.new
 
-    resps = client.request(auto: true) do |c|
+    resps = client.request do |c|
       c.system_prompt "You can use the 'echo' tool to repeat any text back to the user."
       c.message :user, "Hello"
       c.message :assistant, "Yes, how can I help you?"
@@ -77,7 +77,7 @@ class TestRealProviders < Minitest::Test
 
     tool = EchoTool.new
 
-    resps = client.request(auto: true) do |c|
+    resps = client.request do |c|
       c.system_prompt "You can use the 'echo' tool to repeat any text back to the user."
       c.message :user, "Hello"
       c.message :assistant, "Yes, how can I help you?"
