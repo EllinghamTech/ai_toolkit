@@ -31,7 +31,7 @@ class TestRealProviders < Minitest::Test
     end
   end
 
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable Metrics/AbcSize
   def test_claude_provider
     puts "Claude"
     skip "CLAUDE_API_KEY not set" unless ENV["CLAUDE_API_KEY"]
@@ -44,24 +44,28 @@ class TestRealProviders < Minitest::Test
 
     tool = EchoTool.new
 
-    resp = client.request(auto: true) do |c|
+    resps = client.request(auto: true) do |c|
       c.system_prompt "You can use the 'echo' tool to repeat any text back to the user."
       c.message :user, "Hello"
       c.message :assistant, "Yes, how can I help you?"
       c.tool tool
       c.message :user, "Use the echo tool to repeat the word 'testing'."
     end
-
+    resp = resps.last
     refute_empty resp.messages
+    assert resps.total_input_tokens.to_i.positive?
+    assert resps.total_output_tokens.to_i.positive?
+    assert resps.total_execution_time.positive?
+    refute_empty resps.all_results
 
     # To prove to the testing user
     puts resp.messages.to_json
     puts resp.to_json
   end
 
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:enable Metrics/AbcSize
 
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable Metrics/AbcSize
   def test_bedrock_provider
     puts "Bedrock"
     skip "BEDROCK_MODEL_ID not set" unless ENV["BEDROCK_MODEL_ID"]
@@ -73,23 +77,27 @@ class TestRealProviders < Minitest::Test
 
     tool = EchoTool.new
 
-    resp = client.request(auto: true) do |c|
+    resps = client.request(auto: true) do |c|
       c.system_prompt "You can use the 'echo' tool to repeat any text back to the user."
       c.message :user, "Hello"
       c.message :assistant, "Yes, how can I help you?"
       c.tool tool
       c.message :user, "Use the echo tool to repeat the word 'testing'."
     end
-
+    resp = resps.last
     refute_empty resp.messages
+    assert resps.total_input_tokens.to_i.positive?
+    assert resps.total_output_tokens.to_i.positive?
+    assert resps.total_execution_time.positive?
+    refute_empty resps.all_results
 
     # To prove to the testing user
     puts resp.messages.to_json
     puts resp.to_json
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:enable Metrics/AbcSize
 
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable Metrics/AbcSize
   def test_claude_web_search
     puts "Claude web_search"
     skip "CLAUDE_API_KEY not set" unless ENV["CLAUDE_API_KEY"]
@@ -100,18 +108,22 @@ class TestRealProviders < Minitest::Test
     )
     client = AiToolkit::Client.new(provider)
 
-    resp = client.request do |c|
+    resps = client.request do |c|
       c.system_prompt "You can use the web_search tool to find information."
       c.tool :web_search, nil, type: "web_search_20250305"
       c.message :user, "Search the web for Ruby programming language."
     end
-
+    resp = resps.first
     refute_empty resp.messages
+    assert resps.total_input_tokens.to_i.positive?
+    assert resps.total_output_tokens.to_i.positive?
+    assert resps.total_execution_time.positive?
+    refute_empty resps.all_results
 
     # To prove to the testing user
     puts resp.messages.to_json
     puts resp.to_json
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:enable Metrics/AbcSize
 end
 # rubocop:enable YARD/RequireDocumentation

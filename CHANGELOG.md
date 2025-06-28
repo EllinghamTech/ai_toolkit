@@ -1,6 +1,7 @@
 ## [Unreleased]
 ### Added
 - UnknownResult stores raw JSON for unrecognized message types.
+- `AiToolkit::Client#request` now returns a `AiToolkit::ResponseCollection` object
 ### Changed
 - Result classes moved to `AiToolkit::Results` namespace.
 

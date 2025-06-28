@@ -5,7 +5,12 @@ begin
 rescue LoadError
   # aws-sdk-bedrockruntime is optional
 end
+
 require "json"
+
+require_relative "../response"
+require_relative "../results/message_result"
+require_relative "../results/tool_request"
 
 module AiToolkit
   module Providers
@@ -20,7 +25,6 @@ module AiToolkit
         @model_id = model_id
       end
 
-      # rubocop:disable Metrics/MethodLength
       # Perform the request
       # @param messages [Array<Hash>]
       # @param system_prompt [String]
@@ -39,6 +43,7 @@ module AiToolkit
       # rubocop:disable Metrics/ParameterLists
       def call(messages:, system_prompt:, tools: [], max_tokens: 1024,
                tool_choice: nil, temperature: nil, top_k: nil, top_p: nil)
+        start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         body = {
           anthropic_version: "bedrock-2023-05-31",
           messages: messages,
@@ -59,14 +64,20 @@ module AiToolkit
         )
 
         raw = JSON.parse(resp.body.string, symbolize_names: true)
-        format_response(raw)
+        exec_time = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
+
+        build_response(
+          format_response(raw),
+          execution_time: exec_time,
+          usage: raw[:usage]
+        )
       end
-      # rubocop:enable Metrics/MethodLength, Metrics/ParameterLists
+      # rubocop:enable Metrics/ParameterLists
 
       private
 
       # Convert the API response to the common format
-      # rubocop:disable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+      # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
       # @param data [Hash]
       # @return [Hash]
       def format_response(data)
@@ -97,7 +108,28 @@ module AiToolkit
         end
         out
       end
-      # rubocop:enable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+      # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+
+      # Convert formatted data to a Response object
+      # @param data [Hash]
+      # @return [AiToolkit::Response]
+      # @param [Object] execution_time
+      # @param [Object] usage
+      def build_response(data, execution_time: nil, usage: nil)
+        results = (data[:messages] || []).map do |msg|
+          Results::MessageResult.new(role: msg[:role], content: msg[:content])
+        end
+        (data[:tool_uses] || []).each do |tu|
+          results << Results::ToolRequest.new(id: tu[:id], name: tu[:name], input: tu[:input])
+        end
+        Response.new(
+          data,
+          results: results,
+          execution_time: execution_time,
+          input_tokens: usage&.dig(:input_tokens),
+          output_tokens: usage&.dig(:output_tokens)
+        )
+      end
     end
   end
 end
