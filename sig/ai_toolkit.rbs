@@ -1,4 +1,151 @@
 module AiToolkit
   VERSION: String
-  # See the writing guide of rbs: https://github.com/ruby/rbs#guides
+
+  class Error < StandardError
+  end
+
+  class Client
+    def initialize: (provider: untyped) -> void
+
+    def before_request: () { (Hash[Symbol | String, untyped], model: String?, provider: String) -> untyped } -> Proc?
+
+    def after_request: () { (Hash[Symbol | String, untyped], untyped, model: String?, provider: String) -> untyped } -> Proc?
+
+    def request: (auto?: bool, max_tokens?: Integer, max_iterations?: Integer, tool_choice?: Hash?, temperature?: Float?, top_k?: Integer?, top_p?: Float?) { (RequestBuilder) -> void } -> ResponseCollection
+  end
+
+  class RequestBuilder
+    attr_reader messages: Array[Hash[Symbol | String, untyped]]
+    attr_reader tools: Array[Hash[Symbol | String, untyped]]
+    attr_reader tool_objects: Hash[String, Tool]
+
+    def initialize: () -> void
+
+    def system_prompt: (?String) -> String?
+
+    def message: (Symbol | String, String) -> void
+
+    def tool: ((String | Symbol | Tool), ?Hash[Symbol | String, untyped], **untyped) -> void
+  end
+
+  class Response
+    attr_reader stop_reason: String?
+    attr_reader messages: Array[Hash[Symbol | String, untyped]]
+    attr_reader tool_uses: Array[Hash[Symbol | String, untyped]]
+    attr_accessor results: Array[Results::ResultItem]
+    attr_accessor execution_time: untyped
+    attr_accessor input_tokens: untyped
+    attr_accessor output_tokens: untyped
+
+    def initialize: (Hash[Symbol, untyped], results?: Array[Results::ResultItem], execution_time?: untyped, input_tokens?: untyped, output_tokens?: untyped) -> void
+  end
+
+  class ResponseCollection
+    include Enumerable[Response]
+
+    attr_reader total_input_tokens: Numeric
+    attr_reader total_output_tokens: Numeric
+    attr_reader total_execution_time: Numeric
+    attr_reader all_results: Array[Results::ResultItem]
+
+    def initialize: (Array[Response]) -> void
+
+    def each: () { (Response) -> void } -> void
+
+    def []: (Integer) -> Response
+
+    def first: -> Response
+
+    def last: -> Response
+
+    def length: -> Integer
+
+    def size: -> Integer
+  end
+
+  module Results
+    class ResultItem
+      TYPE: Symbol
+    end
+
+    class ToolRequest < ResultItem
+      attr_reader id: String
+      attr_reader name: String
+      attr_reader input: untyped
+
+      def initialize: (id: String, name: String, input: untyped) -> void
+    end
+
+    class ToolResponse < ResultItem
+      attr_reader tool_use_id: String
+      attr_reader content: String
+
+      def initialize: (tool_use_id: String, content: String) -> void
+    end
+
+    class MessageResult < ResultItem
+      attr_reader role: String
+      attr_reader content: String
+
+      def initialize: (role: String, content: String) -> void
+    end
+
+    class UnknownResult < ResultItem
+      attr_reader json: String
+
+      def initialize: (json: String) -> void
+    end
+  end
+
+  class Tool
+    class << self
+      def input_schema: () -> Hash[Symbol | String, untyped]?
+      def input_schema: (Hash[Symbol | String, untyped]) -> Hash[Symbol | String, untyped]
+    end
+
+    def name: -> String
+
+    def description: -> String
+
+    def input_schema: -> Hash[Symbol | String, untyped]?
+
+    def tool_spec: -> Hash[Symbol, untyped]
+
+    def call: (Hash[Symbol | String, untyped]) -> String
+
+    def perform: (Hash[Symbol | String, untyped]) -> String
+  end
+
+  class SafeToolError < StandardError
+  end
+
+  class StopToolLoop < StandardError
+  end
+
+  module Providers
+    class Claude
+      API_URL: String
+      attr_reader model: String
+
+      def initialize: (api_key: String, model?: String) -> void
+
+      def call: (messages: Array[Hash[Symbol | String, untyped]], system_prompt: String?, tools: Array[Hash[Symbol | String, untyped]], max_tokens: Integer, tool_choice?: Hash?, temperature?: Float?, top_k?: Integer?, top_p?: Float?) -> Response
+    end
+
+    class Bedrock
+      attr_reader model_id: String
+
+      def initialize: (model_id: String, client?: untyped) -> void
+
+      def call: (messages: Array[Hash[Symbol | String, untyped]], system_prompt: String?, tools: Array[Hash[Symbol | String, untyped]], max_tokens: Integer, tool_choice?: Hash?, temperature?: Float?, top_k?: Integer?, top_p?: Float?) -> Response
+    end
+
+    class Fake
+      attr_reader model: String
+
+      def initialize: (responses: Array[Hash[Symbol, untyped] | Response], model?: String) -> void
+
+      def call: (messages: untyped?, system_prompt: untyped?, tools: untyped?, max_tokens: untyped?, tool_choice: untyped?, temperature: untyped?, top_k: untyped?, top_p: untyped?) -> Response
+    end
+  end
 end
